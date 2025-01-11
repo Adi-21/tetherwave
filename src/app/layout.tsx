@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import "./globals.css";
 import { inter, manrope } from "./font";
+import "./globals.css";
+import { ThemeProviders } from "@/lib/ThemeProviders";
 
 export const metadata: Metadata = {
   title: {
@@ -20,7 +21,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${manrope.variable} antialiased font-manrope`}
       >
-        {children}
+        <ThemeProviders>{children}</ThemeProviders>
       </body>
     </html>
   );
