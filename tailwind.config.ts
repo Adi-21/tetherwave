@@ -12,6 +12,10 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      fontFamily: {
+        manrope: ["var(--font-manrope)"],
+        inter: ["var(--font-inter)"],
+      },
     },
   },
   plugins: [],
