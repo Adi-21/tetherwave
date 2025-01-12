@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { FaFacebookF, FaXTwitter, FaInstagram } from "react-icons/fa6";
+import { FaXTwitter, FaInstagram } from "react-icons/fa6";
+import { SlSocialFacebook } from "react-icons/sl";
+
 import Container from "./Container";
 
 export function Footer() {
@@ -17,7 +19,7 @@ export function Footer() {
               </div>
               <div className="flex justify-center items-center gap-8">
                 <Link href="#" className="text-gray-400 hover:text-[#f3ba2f]">
-                  <FaFacebookF className="w-8 h-8" />
+                  <SlSocialFacebook className="w-8 h-8" />
                 </Link>
                 <span className="text-gray-600">•</span>
                 <Link href="#" className="text-gray-400 hover:text-[#f3ba2f]">

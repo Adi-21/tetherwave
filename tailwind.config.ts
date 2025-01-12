@@ -12,27 +12,16 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        bgLight: "var(--bgLight)",
+        bgDark: "var(--bgDark)",
+        text: "var(--text)",
+        pink: "var(--pink)",
+        purple: "var(--purple)",
+        blue: "var(--blue)",
       },
       fontFamily: {
         manrope: ["var(--font-manrope)"],
         inter: ["var(--font-inter)"],
-      },
-      animation: {
-        "spin-slow": "spin 8s linear infinite",
-        "spin-slower": "spin 5s linear infinite",
-        "reverse-spin": "reverse-spin 5s linear infinite",
-        "shimmer-slide": "shimmer-slide 3s linear infinite",
-      },
-      keyframes: {
-        "reverse-spin": {
-          from: {
-            transform: "rotate(360deg)",
-          },
-        },
-        "shimmer-slide": {
-          "0%": { transform: "translateX(-400%) skewX(-30deg)" },
-          "100%": { transform: "translateX(400%) skewX(-30deg)" },
-        },
       },
     },
   },

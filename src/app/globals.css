@@ -4,22 +4,94 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #000000;
+  --bgLight: #f8f9fa;
+  --bgDark: #000000;
+  --text: #e4e4e7;
+  --pink: #fc2fa4;
+  --purple: #902dff;
+  --blue: #4b4cf6;
 }
 
-*{
+.dark {
+  --background: #121212;
+  --foreground: #e4e4e7;
+  --bgLight: #f8f9fa;
+  --bgDark: #000000;
+  --text: #e4e4e7;
+  --pink: #fc2fa4;
+  --purple: #902dff;
+  --blue: #4b4cf6;
+}
+
+* {
   scroll-behavior: smooth;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #121212;
+    --foreground: #e4e4e7;
+    --bgLight: #f8f9fa;
+    --bgDark: #000000;
+    --text: #e4e4e7;
+    --pink: #fc2fa4;
+    --purple: #902dff;
+    --blue: #4b4cf6;
   }
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Background Gradients */
+.bg-gradient {
+  background: radial-gradient(130% 120% at 50% 50%, #c6e7ff33 0%, #f1f1f1 100%);
+}
+
+.dark .bg-gradient {
+  background: radial-gradient(130% 120% at 50% 50%, #262626 0%, #282828 100%);
+}
+
+.bg-gradient-button {
+  background: linear-gradient(101deg, #fc2fa4, #902dff 57%, #4b4cf6);
+}
+
+.bg-gradient-button-green {
+  background: linear-gradient(101deg, #6fcf97, #902dff 57%, #219653);
+}
+
+/* Animations */
+@keyframes reverse-spin {
+  from {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmer-slide {
+  0% {
+    transform: translateX(-400%) skewX(-30deg);
+  }
+  100% {
+    transform: translateX(400%) skewX(-30deg);
+  }
+}
+
+/* Animation classes */
+.animate-spin-slow {
+  animation: spin 8s linear infinite;
+}
+
+.animate-spin-slower {
+  animation: spin 5s linear infinite;
+}
+
+.animate-reverse-spin {
+  animation: reverse-spin 5s linear infinite;
+}
+
+.animate-shimmer-slide {
+  animation: shimmer-slide 3s linear infinite;
 }
