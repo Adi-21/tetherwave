@@ -1,27 +1,18 @@
-import type { Metadata } from "next";
-import { inter, manrope } from "./font";
+'use client';
+
 import "./globals.css";
-import { ThemeProviders } from "@/lib/ThemeProviders";
+import { Providers } from '@/providers/Providers';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
-export const metadata: Metadata = {
-  title: {
-    default: "Tether - Liquid staking for digital assets",
-    template: "%s | Tether - Liquid staking for digital assets",
-  },
-  description: "Stake your digital assets and earn daily rewards",
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.variable} ${manrope.variable} antialiased font-manrope`}
-      >
-        <ThemeProviders>{children}</ThemeProviders>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning>
+        <ThemeProvider>
+          <Providers>
+            {children}
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );

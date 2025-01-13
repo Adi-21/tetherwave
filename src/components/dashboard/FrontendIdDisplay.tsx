@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 // import { useFrontendId } from '@/contexts/FrontendIdContext';
 import type { FrontendIdDisplayProps } from "@/types/contract";
 
@@ -9,11 +9,11 @@ export function FrontendIdDisplay({
   const [displayId, setDisplayId] = useState("Loading...");
   // const { getFrontendId } = useFrontendId();
 
-  const getFrontendId = async (address: string) => {
+  const getFrontendId = useCallback(async (address: string) => {
     const response = await fetch(`/api/frontend-id?address=${address}`);
     const data = await response.json();
     return data.frontendId;
-  };
+  }, []);
 
   useEffect(() => {
     if (!address) {
@@ -49,7 +49,7 @@ export function FrontendIdDisplay({
     return () => {
       isMounted = false;
     };
-  }, [address, getFrontendId, isRegistered]);
+  }, [address, isRegistered, getFrontendId]);
 
   return displayId;
 }
