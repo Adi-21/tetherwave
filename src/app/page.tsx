@@ -6,6 +6,9 @@ import HowItWorks from "@/components/home/HowItWorks";
 import { SplitViewSection } from "@/components/home/SplitViewSection";
 import { GradientCursor } from "@/components/ui/GradientCursor";
 import Image from "next/image";
+import { metadata } from './metadata';
+
+export { metadata };
 
 export default function Home() {
   return (

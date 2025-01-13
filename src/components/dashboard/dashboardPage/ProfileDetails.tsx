@@ -2,12 +2,14 @@ import { memo } from "react";
 import { LuUser, LuHash, LuCalendar, LuCrown } from "react-icons/lu";
 import ProfileItem from "../../common/ProfileItem";
 import type { UserProfileData } from "@/types/contract";
+import Skeleton from "@/components/common/Skeleton";
 
 interface ProfileDetailsProps {
-  userProfileData?: UserProfileData | null;
-  currentLevel?: number;
-  directSponsorId?: string | null | undefined;
-  matrixSponsorId?: string | null | undefined;
+  userProfileData: UserProfileData | null;
+  currentLevel: number;
+  directSponsorId: string;
+  matrixSponsorId: string;
+  isLoading: boolean;
 }
 
 const SponsorInfo = memo(
@@ -37,6 +39,7 @@ const ProfileDetails = memo(
     currentLevel,
     directSponsorId,
     matrixSponsorId,
+    isLoading,
   }: ProfileDetailsProps) => {
     const rankName = "Unknown";
     const activationDate = "Not Available";
@@ -48,25 +51,36 @@ const ProfileDetails = memo(
           <span>Profile Details</span>
         </div>
         <div className="grid lg:grid-cols-2 gap-2 lg:gap-4 mt-4">
-          <ProfileItem
-            icon={LuHash}
-            label="User ID"
-            value={userProfileData?.frontend_id || "Not Available"}
-          />
-          <ProfileItem
-            icon={LuCrown}
-            label="Rank"
-            value={`${currentLevel} - ${rankName}`}
-          />
-          <ProfileItem
-            icon={LuCalendar}
-            label="Activation Date"
-            value={activationDate}
-          />
-          <SponsorInfo
-            directSponsorId={directSponsorId}
-            matrixSponsorId={matrixSponsorId}
-          />
+          {isLoading ? (
+            <>
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </>
+          ) : (
+            <>
+              <ProfileItem
+                icon={LuHash}
+                label="User ID"
+                value={userProfileData?.frontend_id || "Not Available"}
+              />
+              <ProfileItem
+                icon={LuCrown}
+                label="Rank"
+                value={`${currentLevel} - ${rankName}`}
+              />
+              <ProfileItem
+                icon={LuCalendar}
+                label="Activation Date"
+                value={activationDate}
+              />
+              <SponsorInfo
+                directSponsorId={directSponsorId}
+                matrixSponsorId={matrixSponsorId}
+              />
+            </>
+          )}
         </div>
       </section>
     );

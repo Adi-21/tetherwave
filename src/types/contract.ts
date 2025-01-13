@@ -16,9 +16,9 @@ export interface UserStats {
 }
 
 export interface RecentIncomeEvents {
-    userAddresses: `0x${string}`[];
-    levelNumbers: number[];
+    userAddresses: string[];
     amounts: bigint[];
+    levelNumbers: number[];
     timestamps: number[];
     totalCount: number;
 }
@@ -92,9 +92,10 @@ export interface TierCardProps {
         bg: string;
     };
     index: number;
-    data: {
+    royaltyData: {
         qualifiedTiers: boolean[];
         royaltyInfo: RoyaltyInfo | null;
+        error: string | null;
         legProgress: {
             tier1: LegProgress;
             tier2: LegProgress;
@@ -102,26 +103,47 @@ export interface TierCardProps {
             tier4: LegProgress;
         };
     };
-    parsedRoyaltyInfo: RoyaltyInfo | null;
-    calculateTotalPoolAmount: (index: number) => string;
-    calculateStrongLegProgress: (tier: LegProgress) => number;
-    calculateWeakLegProgress: (tier: LegProgress) => number;
+    calculations: {
+        totalPoolAmount: () => string;
+        strongLegProgress: (tier: LegProgress) => number;
+        weakLegProgress: (tier: LegProgress) => number;
+    };
 }
 
 export interface RankIncomeProps {
     userStats: UserStats | null;
     levelIncomes: bigint[];
+    isLoading: boolean;
 }
 
 export interface RecentIncomeProps {
     recentIncomes: RecentIncomeEvents;
     currentLevel: number;
     currentPage: number;
-    setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+    setCurrentPage: (page: number) => void;
     itemsPerPage: number;
+    isLoading: boolean;
 }
 
 export interface PackagesProps {
     currentLevel: number;
     handleUpgrade: (level: number, amount: number) => void;
+}
+
+export interface TierData {
+    title: string;
+    description: string;
+    bg: string;
+}
+
+export interface RoyaltyState {
+    qualifiedTiers: boolean[];
+    royaltyInfo: RoyaltyInfo | null;
+    error: string | null;
+    legProgress: {
+        tier1: LegProgress;
+        tier2: LegProgress;
+        tier3: LegProgress;
+        tier4: LegProgress;
+    };
 }

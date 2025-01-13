@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import SocialLinks from "../SocialLinks";
 import Link from "next/link";
 import ProfileDetails from "./ProfileDetails";
@@ -8,30 +8,36 @@ import WalletDetails from "./WalletDetails";
 import Registration from "./Registration";
 import Packages from "./Packages";
 import AllIncomes from "./AllIncomes";
-import RankIncome from "./RankIncome";
+import RankIncome from "./RankIncome/RankIncome";
 import RoyaltySlab from "./RoyaltySlab";
-import RecentIncome from "./RecentIncome";
+import RecentIncome from "./RecentIncome/RecentIncome";
+import { useSelector, useDispatch } from 'react-redux';
+import type { RootState } from '@/store';
+import { setReferrerAddress, setCurrentPage } from '@/store/features/dashboardSlice';
 
-const DashboardPage = () => {
-  const [referrerAddress, setReferrerAddress] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+const DashboardPage = memo(() => {
+  const dispatch = useDispatch();
+  const {
+    isLoading,
+    referrerAddress,
+    currentPage,
+    recentIncomes,
+    userStatsData,
+    levelIncomesData,
+    itemsPerPage
+  } = useSelector((state: RootState) => state.dashboard);
 
-  const referralCode = "0x5275";
-  const usdtBalance = "0.0";
+  // Memoize static values
+  const staticProps = useMemo(() => ({
+    referralCode: "0x5275",
+    usdtBalance: "0.0",
+    userProfileData: null,
+    currentLevel: 1,
+    directSponsorId: "0x",
+    matrixSponsorId: "0x"
+  }), []);
 
-  const itemsPerPage = 5;
   const handleRegister = useCallback(() => {}, []);
-  const userProfileData = useMemo(() => null, []);
-  const recentIncomes = useMemo(
-    () => ({
-      userAddresses: [],
-      levelNumbers: [],
-      amounts: [],
-      timestamps: [],
-      totalCount: 0,
-    }),
-    []
-  );
 
   return (
     <div className="flex flex-col justify-center items-center gap-4 w-full overflow-hidden">
@@ -41,32 +47,39 @@ const DashboardPage = () => {
 
       <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 text-nowrap w-full">
         <ProfileDetails
-          userProfileData={userProfileData}
-          currentLevel={1}
-          directSponsorId={"0x"}
-          matrixSponsorId={"0x"}
+          userProfileData={staticProps.userProfileData}
+          isLoading={isLoading}
+          currentLevel={staticProps.currentLevel}
+          directSponsorId={staticProps.directSponsorId}
+          matrixSponsorId={staticProps.matrixSponsorId}
         />
         <WalletDetails
+          isLoading={isLoading}
           address={"0x"}
-          usdtBalance={usdtBalance}
-          referralCode={referralCode}
+          usdtBalance={staticProps.usdtBalance}
+          referralCode={staticProps.referralCode}
         />
       </div>
 
       <Registration
         referrerAddress={referrerAddress}
-        setReferrerAddress={setReferrerAddress}
+        setReferrerAddress={(address) => dispatch(setReferrerAddress(address))}
         handleRegister={handleRegister}
       />
 
-      <Packages currentLevel={1} handleUpgrade={() => {}} />
+      <Packages currentLevel={staticProps.currentLevel} handleUpgrade={() => {}} />
 
       <AllIncomes
-        userStats={null}
+        userStats={userStatsData}
         upgradeReferralIncome={null}
         totalTeamSize={2}
+        isLoading={isLoading}
       />
-      <RankIncome userStats={null} levelIncomes={[]} />
+      <RankIncome 
+        userStats={userStatsData}
+        levelIncomes={levelIncomesData}
+        isLoading={isLoading}
+      />
       <section className="mt-4 lg:mt-8 w-full">
         <h3 className="text-2xl lg:text-5xl font-bold pb-4 lg:pb-8 text-center text-3d dark:text-3d-dark bg-gradient-to-r from-pink via-purple to-blue text-transparent/10 bg-clip-text">
           Fortune Founder Reward
@@ -74,13 +87,12 @@ const DashboardPage = () => {
         <RoyaltySlab />
       </section>
       <RecentIncome
-        {...{
-          recentIncomes,
-          currentLevel: 1,
-          currentPage,
-          setCurrentPage,
-          itemsPerPage,
-        }}
+        recentIncomes={recentIncomes}
+        currentLevel={staticProps.currentLevel}
+        currentPage={currentPage}
+        setCurrentPage={(page: number) => dispatch(setCurrentPage(page))}
+        itemsPerPage={itemsPerPage}
+        isLoading={isLoading}
       />
 
       <div className="text-center text-xs lg:text-sm font-bold mt-4 lg:mt-8 mb-2 w-full">
@@ -94,6 +106,8 @@ const DashboardPage = () => {
       </div>
     </div>
   );
-};
+});
+
+DashboardPage.displayName = "DashboardPage";
 
 export default DashboardPage;
