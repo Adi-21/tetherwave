@@ -4,6 +4,7 @@ import type { RankIncomeProps } from "@/types/contract";
 import { LuLandmark } from "react-icons/lu";
 import RankCard from "./RankCard";
 import Skeleton from "@/components/common/Skeleton";
+import { formatEther } from "viem";
 
 const RankIncome = memo(({ userStats, levelIncomes, isLoading }: RankIncomeProps) => {
     const formattedLevelIncomes = useMemo(() =>
@@ -37,9 +38,9 @@ const RankIncome = memo(({ userStats, levelIncomes, isLoading }: RankIncomeProps
                         </>
                     ) : (
                         <>
-                            <RankCard title={LEVELS[0].name} amount={directCommission} />
+                            <RankCard title={LEVELS[0].name} amount={formatEther(BigInt(directCommission))} />
                             {formattedLevelIncomes.map((level) => (
-                                <RankCard key={level.id} title={level.name} amount={level.amount} />
+                                <RankCard key={level.id} title={level.name} amount={formatEther(BigInt(level.amount))} />
                             ))}
                         </>
                     )}

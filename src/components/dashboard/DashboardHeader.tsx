@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
@@ -8,32 +8,34 @@ import { useRouter, usePathname } from "next/navigation";
 import SocialLinks from "@/components/dashboard/SocialLinks";
 import Container from "../common/Container";
 import ThemeToggle from "../common/ThemeToggle";
+import { useAccount, useDisconnect } from "wagmi";
 
 const navItems = [
   { title: "Dashboard", path: "/dashboard" },
   { title: "Referrals", path: "/dashboard/referrals" },
   { title: "Community", path: "/dashboard/community" },
   { title: "Geneology", path: "/dashboard/geneology" },
+  { title: "Royalty", path: "/dashboard/royalty" },
 ];
 
 const DashboardHeader = () => {
   const router = useRouter();
   const pathname = usePathname();
-  // const { isConnected } = useAccount();
-  // const { disconnect } = useDisconnect();
+  const { isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
 
-  // useEffect(() => {
-  //   if (!isConnected) {
-  //     router.push("/");
-  //   }
-  // }, [isConnected, router]);
+  useEffect(() => {
+    if (!isConnected) {
+      router.push("/");
+    }
+  }, [isConnected, router]);
 
-  // if (!isConnected) {
-  //   return null;
-  // }
+  if (!isConnected) {
+    return null;
+  }
 
   const handleLogout = () => {
-    // disconnect();
+    disconnect();
     router.push("/");
   };
 

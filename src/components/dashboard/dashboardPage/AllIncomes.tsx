@@ -29,6 +29,10 @@ const IncomeCard = memo(({ title, value, isAmount = false }: IncomeCardProps) =>
 
 IncomeCard.displayName = 'IncomeCard';
 
+const formatBigIntToUSDT = (value: bigint): string => {
+    return (Number(value) / 1e18).toFixed(2);
+};
+
 const AllIncomes = memo(({
   userStats,
   upgradeReferralIncome,
@@ -47,11 +51,11 @@ const AllIncomes = memo(({
       </>
     ) : (
       <>
-        <IncomeCard title="Total Income" value="0" isAmount />
-        <IncomeCard title="Referral Income" value="0" isAmount />
-        <IncomeCard title="Level Income" value="0" isAmount />
+        <IncomeCard title="Total Income" value={userStats?.totalEarnings ? formatBigIntToUSDT(BigInt(userStats.totalEarnings)) : "0"} isAmount />
+        <IncomeCard title="Referral Income" value={userStats?.directCommissionEarned ? formatBigIntToUSDT(BigInt(userStats.directCommissionEarned)) : "0"} isAmount />
+        <IncomeCard title="Level Income" value={userStats?.levelIncomeEarned ? formatBigIntToUSDT(BigInt(userStats.levelIncomeEarned)) : "0"} isAmount />
         <IncomeCard title="Direct Referral" value={userStats?.directReferrals?.toString() || "0"} />
-        <IncomeCard title="Upgrade Referral Income" value={upgradeReferralIncome?.toString() || "0"} isAmount />
+        <IncomeCard title="Upgrade Referral Income" value={upgradeReferralIncome ? formatBigIntToUSDT(upgradeReferralIncome) : "0"} isAmount />
         <IncomeCard title="Total Team Size" value={totalTeamSize?.toString() || "0"} />
       </>
     )}

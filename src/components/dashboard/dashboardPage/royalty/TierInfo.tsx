@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 
 interface TierInfoProps {
     title: string;
@@ -7,11 +7,30 @@ interface TierInfoProps {
 }
 
 const TierInfo = memo(({ title, isAchieved, isQualified }: TierInfoProps) => {
+    const [pulseColor, setPulseColor] = useState(isAchieved ? "bg-green-400" : "bg-red-500");
+    const [shouldAnimate, setShouldAnimate] = useState(false);
+
+    useEffect(() => {
+        // Start animation when status changes
+        setShouldAnimate(true);
+        setPulseColor(isAchieved ? "bg-green-400" : "bg-red-500");
+
+        // Reset animation after completion
+        const timer = setTimeout(() => {
+            setShouldAnimate(false);
+        }, 2000);
+
+        return () => clearTimeout(timer);
+    }, [isAchieved]);
+
     return (
         <div className="flex justify-between items-center mb-3">
             <div className='flex justify-center items-center gap-2'>
                 <h3 className="text-lg font-semibold">{title}</h3>
-                <div className={`w-3 h-3 rounded-full animate-pulse ${isAchieved ? "bg-green-400" : "bg-red-500"}`} />
+                <div className={`w-3 h-3 rounded-full transition-colors duration-300 
+                    ${shouldAnimate ? 'animate-pulse' : ''} 
+                    ${pulseColor}`} 
+                />
             </div>
             <div className="flex gap-2">
                 {isQualified && (

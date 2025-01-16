@@ -59,7 +59,9 @@ const WalletDetails = ({
             <div className="flex items-center space-x-2 px-4 py-4 drop-shadow-lg rounded-md bg-white/40 dark:bg-white/5">
               <LuCircleDollarSign className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
               <span className="text-sm font-medium">USDT Balance:</span>
-              <span className="font-bold">{`${usdtBalance} USDT`}</span>
+              <span className="font-bold">
+                {usdtBalance ? `${usdtBalance} USDT` : "0.0 USDT"}
+              </span>
             </div>
             <div className="flex items-center space-x-2 px-4 py-3 drop-shadow-lg rounded-md bg-white/40 dark:bg-white/5">
               <LuLink2 className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />

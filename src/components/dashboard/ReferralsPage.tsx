@@ -1,39 +1,35 @@
 "use client";
 
-import React, { useState } from "react";
-import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useAccount } from "wagmi";
+import { fetchReferralData, setCurrentPage } from "@/store/features/referralsSlice";
+import { LEVELS } from "@/lib/constants/levels";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { ReferralData } from "@/types/contract";
+import type { AppDispatch, RootState } from "@/store";
+import { FrontendIdDisplay } from "./FrontendIdDisplay";
 
 const ReferralsPage = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const dispatch = useDispatch<AppDispatch>();
+  const { address } = useAccount();
+  const { referralData, totalCount, currentPage, isLoading } = useSelector(
+    (state: RootState) => state.referrals
+  );
+  const itemsPerPage = 10;
 
-  // dummy data
-  const referralData = {
-    referralData: [
-      {
-        userAddress: "0xAddress1",
-        activationTime: 1622557891,
-        currentLevel: 1,
-        directReferrals: 5,
-      },
-      {
-        userAddress: "0xAddress2",
-        activationTime: 1622644291,
-        currentLevel: 2,
-        directReferrals: 3,
-      },
-    ],
-    totalCount: 2,
-  };
+  useEffect(() => {
+    if (address) {
+      dispatch(fetchReferralData({ address, page: currentPage, itemsPerPage }));
+    }
+  }, [address, currentPage, dispatch]);
 
-  const LEVELS = [
-    { name: "Beginner" },
-    { name: "Intermediate" },
-    { name: "Advanced" },
-  ];
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="p-4 rounded-lg drop-shadow-lg shadow bg-gradient w-full">
+    <div className="p-4 rounded-lg drop-shadow-lg shadow bg-light-gradient dark:bg-dark-gradient w-full">
       <div className="overflow-y-auto text-nowrap pb-1">
         <table className="w-full">
           <thead className="overflow-y-auto drop-shadow-lg bg-white/40 dark:bg-white/5">
@@ -46,14 +42,14 @@ const ReferralsPage = () => {
             </tr>
           </thead>
           <tbody>
-            {referralData.referralData.map((referral, index) => (
+            {referralData.map((referral: ReferralData, index: number) => (
               <tr
                 key={`referral-${index + 1}`}
                 className="hover:bg-white/20 dark:hover:bg-white/10"
               >
                 <td className="py-2 px-4">{index + 1}</td>
                 <td className="py-2 px-4">
-                  {/* <FrontendIdDisplay address={referral.userAddress} isRegistered={referral.currentLevel > 0} /> */}
+                  <FrontendIdDisplay address={referral.userAddress} isRegistered={referral.currentLevel > 0} />
                 </td>
                 <td className="py-2 px-4">
                   {new Date(
@@ -69,7 +65,7 @@ const ReferralsPage = () => {
             ))}
           </tbody>
         </table>
-        {referralData.referralData.length === 0 && (
+        {referralData.length === 0 && (
           <p className="text-gray-500 text-center mt-4">
             No referral data available.
           </p>
@@ -77,48 +73,29 @@ const ReferralsPage = () => {
         <div className="flex justify-between items-center gap-8 mt-4 w-full text-nowrap">
           <div className="text-sm text-gray-500">
             Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-            {Math.min(currentPage * itemsPerPage, referralData.totalCount)} of{" "}
-            {referralData.totalCount} entries
+            {Math.min(currentPage * itemsPerPage, totalCount)} of{" "}
+            {totalCount} entries
           </div>
           <div className="flex justify-end gap-2">
             <button
               type="button"
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              onClick={() => dispatch(setCurrentPage(currentPage - 1))}
               disabled={currentPage === 1}
-              className={`px-3 py-1 rounded drop-shadow shadow ${
-                currentPage === 1
-                  ? "bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-500 cursor-not-allowed"
-                  : "bg-gray-200 text-gray-500 dark:bg-gray-600 dark:text-gray-300 hover:bg-opacity-80 dark:hover:bg-opacity-80"
-              }`}
             >
-              <LuChevronLeft className="h-4 w-4" />
+              <ChevronLeft />
             </button>
             <div className="px-3 py-1 rounded bg-gradient-button text-white">
               {currentPage} of{" "}
-              {Math.ceil(referralData.totalCount / itemsPerPage)}
+              {Math.ceil(totalCount / itemsPerPage)}
             </div>
             <button
               type="button"
-              onClick={() =>
-                setCurrentPage((prev) =>
-                  Math.min(
-                    prev + 1,
-                    Math.ceil(referralData.totalCount / itemsPerPage)
-                  )
-                )
-              }
+              onClick={() => dispatch(setCurrentPage(currentPage + 1))}
               disabled={
-                currentPage ===
-                Math.ceil(referralData.totalCount / itemsPerPage)
+                currentPage === Math.ceil(totalCount / itemsPerPage)
               }
-              className={`px-3 py-1 rounded drop-shadow shadow ${
-                currentPage ===
-                Math.ceil(referralData.totalCount / itemsPerPage)
-                  ? "bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-500 cursor-not-allowed"
-                  : "bg-gray-200 text-gray-500 dark:bg-gray-600 dark:text-gray-300 hover:bg-opacity-80 dark:hover:bg-opacity-80"
-              }`}
             >
-              <LuChevronRight className="h-4 w-4" />
+              <ChevronRight />
             </button>
           </div>
         </div>
