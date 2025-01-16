@@ -4,18 +4,26 @@ import type { RecentIncomeProps } from "@/types/contract";
 import IncomeRow from "./IncomeRow";
 import Pagination from "./Pagination";
 import Skeleton from "@/components/common/Skeleton";
+import { formatEther } from "viem";
 
 const RecentIncome = memo(({
     recentIncomes,
-    currentLevel,
     currentPage,
     setCurrentPage,
     itemsPerPage,
     isLoading,      
 }: RecentIncomeProps) => {
+    const incomes = useMemo(() => recentIncomes ?? {
+        userAddresses: [],
+        levelNumbers: [],
+        amounts: [],
+        timestamps: [],
+        totalCount: 0
+    }, [recentIncomes]);
+
     const totalPages = useMemo(
-        () => Math.ceil(recentIncomes.totalCount / itemsPerPage),
-        [recentIncomes.totalCount, itemsPerPage]
+        () => Math.ceil(incomes.totalCount / itemsPerPage),
+        [incomes.totalCount, itemsPerPage]
     );
 
     const startEntry = useMemo(
@@ -24,9 +32,13 @@ const RecentIncome = memo(({
     );
 
     const endEntry = useMemo(
-        () => Math.min(currentPage * itemsPerPage, recentIncomes.totalCount),
-        [currentPage, itemsPerPage, recentIncomes.totalCount]
+        () => Math.min(currentPage * itemsPerPage, incomes.totalCount),
+        [currentPage, itemsPerPage, incomes.totalCount]
     );
+
+    if (isLoading) {
+        return <Skeleton className="h-64 w-full" />;
+    }
 
     return (
         <div className="mt-4 lg:mt-8 p-4 rounded-lg drop-shadow-lg shadow bg-gradient w-full">
@@ -35,37 +47,28 @@ const RecentIncome = memo(({
                 <span>Recent Income</span>
             </div>
             <div className="overflow-y-auto text-nowrap pb-1">
-                {isLoading ? (
-                    <div className="space-y-4 mt-4">
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                    </div>
-                ) : (
-                    <table className="w-full mt-4 border-collapse">
-                        <thead className="overflow-y-auto drop-shadow-lg bg-white/40 dark:bg-white/5">
-                            <tr>
-                                <th className="py-2 px-4 text-left">From</th>
-                                <th className="py-2 px-4 text-left">Amount</th>
-                                <th className="py-2 px-4 text-left">Rank Level</th>
-                                <th className="py-2 px-4 text-left">Layer</th>
-                                <th className="py-2 px-4 text-left">Time</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {recentIncomes.userAddresses.map((address, index) => (
-                                <IncomeRow
-                                    key={`${index + 1}`}
-                                    address={address}
-                                    amount={recentIncomes.amounts[index]}
-                                    levelNumber={recentIncomes.levelNumbers[index]}
-                                    timestamp={recentIncomes.timestamps[index]}
-                                    currentLevel={currentLevel}
-                                />
-                            ))}
-                        </tbody>
-                    </table>
-                )}
+                <table className="w-full mt-4 border-collapse">
+                    <thead className="overflow-y-auto drop-shadow-lg bg-white/40 dark:bg-white/5">
+                        <tr>
+                            <th className="py-2 px-4 text-left">From</th>
+                            <th className="py-2 px-4 text-left">Amount</th>
+                            <th className="py-2 px-4 text-left">Rank Level</th>
+                            <th className="py-2 px-4 text-left">Layer</th>
+                            <th className="py-2 px-4 text-left">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {incomes.userAddresses.map((address, index) => (
+                            <IncomeRow
+                                key={`${index + 1}`}
+                                address={address}
+                                level={incomes.levelNumbers[index]}
+                                amount={formatEther(BigInt(incomes.amounts[index]))}
+                                timestamp={incomes.timestamps[index]}
+                            />
+                        ))}
+                    </tbody>
+                </table>
 
                 <Pagination
                     currentPage={currentPage}
@@ -73,7 +76,7 @@ const RecentIncome = memo(({
                     onPageChange={setCurrentPage}
                     startEntry={startEntry}
                     endEntry={endEntry}
-                    totalCount={recentIncomes.totalCount}
+                    totalCount={incomes.totalCount}
                 />
             </div>
         </div>

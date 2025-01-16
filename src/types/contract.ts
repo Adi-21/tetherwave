@@ -7,17 +7,17 @@ export interface LevelInfo {
 }
 
 export interface UserStats {
-    currentLevel: number
-    directReferrals: number
-    totalEarnings: bigint
-    directCommissionEarned: bigint
-    levelIncomeEarned: bigint
-    timestamp: number
+    currentLevel: number;
+    directReferrals: number;
+    totalEarnings: string;
+    directCommissionEarned: string;
+    levelIncomeEarned: string;
+    timestamp: number;
 }
 
 export interface RecentIncomeEvents {
     userAddresses: string[];
-    amounts: bigint[];
+    amounts: string[];
     levelNumbers: number[];
     timestamps: number[];
     totalCount: number;
@@ -40,10 +40,10 @@ export interface DownlineData {
 
 export interface RoyaltyInfo {
     achievedTiers: boolean[];
-    paidDays: bigint[];
-    daysRemaining: bigint[];
-    nextClaimTime: bigint[];
-    totalEarned: bigint[];
+    paidDays: string[];
+    daysRemaining: string[];
+    nextClaimTime: string[];
+    totalEarned: string[];
     qualifiedNewTiers: boolean[];
 }
 
@@ -53,17 +53,11 @@ export interface Sponsor {
 }
 
 export interface LevelActivatedCount {
-    strongLeg: bigint;
-    weakLeg1: bigint;
-    weakLeg2: bigint;
+    strongLeg: string;
+    weakLeg1: string;
+    weakLeg2: string;
 }
 
-export interface UserProfileData {
-    frontend_id: string;
-    created_at: string;
-    wallet_address: string;
-    referral_code: string;
-}
 
 export type FrontendIdContextType = {
     getFrontendId: (address: string) => Promise<string>;
@@ -74,9 +68,9 @@ export type FrontendIdContextType = {
 export interface LegProgress {
     total: number;
     requiredStrong: number;
-    strongLeg: bigint;
-    weakLeg1: bigint;
-    weakLeg2: bigint;
+    strongLeg: string;
+    weakLeg1: string;
+    weakLeg2: string;
     requiredLevel: number;
 }
 
@@ -95,7 +89,6 @@ export interface TierCardProps {
     royaltyData: {
         qualifiedTiers: boolean[];
         royaltyInfo: RoyaltyInfo | null;
-        error: string | null;
         legProgress: {
             tier1: LegProgress;
             tier2: LegProgress;
@@ -108,11 +101,20 @@ export interface TierCardProps {
         strongLegProgress: (tier: LegProgress) => number;
         weakLegProgress: (tier: LegProgress) => number;
     };
+    onRegister: (index: number) => Promise<void>;
+    onDistribute: (index: number) => Promise<void>;
 }
 
 export interface RankIncomeProps {
     userStats: UserStats | null;
     levelIncomes: bigint[];
+    isLoading: boolean;
+}
+
+export interface UserProfileData {
+    userStats: UserStats | null;
+    levelIncomes: bigint[];
+    frontend_id: string;
     isLoading: boolean;
 }
 

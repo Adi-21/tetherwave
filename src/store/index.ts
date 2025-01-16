@@ -1,9 +1,16 @@
 import { configureStore } from '@reduxjs/toolkit';
 import dashboardReducer from './features/dashboardSlice';
-
+import referralsReducer from './features/referralsSlice';
+import genealogyReducer from './features/genealogySlice';
+import communityReducer from './features/communitySlice';
+import royaltyReducer from './features/royaltySlice';
 export const store = configureStore({
   reducer: {
-    dashboard: dashboardReducer
+    dashboard: dashboardReducer,
+    referrals: referralsReducer,
+    genealogy: genealogyReducer,
+    community: communityReducer,
+    royalty: royaltyReducer
   }
 });
 

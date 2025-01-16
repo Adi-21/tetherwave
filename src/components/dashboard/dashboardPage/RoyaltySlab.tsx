@@ -1,30 +1,40 @@
 'use client';
 
-import { memo, useMemo } from 'react';
+import { memo, useEffect } from 'react';
 import { List, AutoSizer } from 'react-virtualized';
 import { SLABS, TIER_AMOUNTS } from '@/lib/constants';
 import type { RootState } from '@/store';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { useAccount } from 'wagmi';
+import { 
+    fetchRoyaltyData, 
+    registerTier, 
+    distributeTierRoyalty 
+} from '@/store/features/royaltySlice';
 import TierCard from './royalty/TierCard';
 import Skeleton from '@/components/common/Skeleton';
-import type { LegProgress } from '@/types/contract';
-
+import type { AppDispatch } from '@/store';
+import type { LegProgress, RoyaltyInfo } from '@/types/contract';
+import { formatRoyaltyAmount } from '@/lib/utils/contractHelpers';
 const RoyaltySlab = memo(() => {
-    const { royalty, isLoading } = useSelector((state: RootState) => state.dashboard);
+    const dispatch = useDispatch<AppDispatch>();
+    const { address } = useAccount();
+    const {     
+        qualifiedTiers, 
+        royaltyInfo, 
+        legProgress, 
+        isLoading,
+    } = useSelector((state: RootState) => state.royalty);
 
-    const calculations = useMemo(() => SLABS.map((_, index) => ({
-        totalPoolAmount: () => (TIER_AMOUNTS[index] * BigInt(500)).toString(),
-        strongLegProgress: (tier: LegProgress) => {
-            const strongLegValue = Number(tier.strongLeg);
-            return strongLegValue >= tier.requiredStrong ? 100 : 
-                Math.min((strongLegValue / tier.requiredStrong) * 100, 100);
-        },
-        weakLegProgress: (tier: LegProgress) => {
-            const weakLegTotal = Number(tier.weakLeg1 + tier.weakLeg2);
-            return weakLegTotal >= tier.requiredStrong ? 100 :
-                Math.min((weakLegTotal / tier.requiredStrong) * 100, 100);
+    useEffect(() => {
+        if (address) {
+            dispatch(fetchRoyaltyData(address));
+            const interval = setInterval(() => {
+                dispatch(fetchRoyaltyData(address));
+            }, 60000);
+            return () => clearInterval(interval);
         }
-    })), []);
+    }, [address, dispatch]);
 
     return (
         <div className="w-full h-[800px]">
@@ -34,17 +44,47 @@ const RoyaltySlab = memo(() => {
                         width={width}
                         height={height}
                         rowCount={SLABS.length}
-                        rowHeight={400}
+                        rowHeight={450}
                         rowRenderer={({ index, key, style }) => (
                             <div key={key} style={style}>
                                 {isLoading ? (
-                                    <Skeleton className="h-[400px] w-full rounded-md" />
+                                    <div className="animate-pulse">
+                                        <Skeleton className="h-[400px] w-full rounded-md bg-gray-200 dark:bg-gray-700 space-y-8" />
+                                    </div>
                                 ) : (
                                     <TierCard
                                         slab={SLABS[index]}
                                         index={index}
-                                        royaltyData={royalty}
-                                        calculations={calculations[index]}
+                                        royaltyData={{
+                                            qualifiedTiers,
+                                            royaltyInfo: royaltyInfo as RoyaltyInfo,
+                                            legProgress,
+                                        }}
+                                        calculations={{
+                                            totalPoolAmount: () => {
+                                                const totalDays = BigInt(500);
+                                                return formatRoyaltyAmount(TIER_AMOUNTS[index] * totalDays);
+                                            },
+                                            strongLegProgress: (tier: LegProgress) => {
+                                                const progress = (Number(tier.strongLeg) / tier.requiredStrong) * 100;
+                                                return Math.min(progress, 100);
+                                            },
+                                            weakLegProgress: (tier: LegProgress) => {
+                                                const weakLegTotal = Number(tier.weakLeg1) + Number(tier.weakLeg2);
+                                                const progress = (weakLegTotal / tier.requiredStrong) * 100;
+                                                return Math.min(progress, 100);
+                                            }
+                                        }}
+                                        onRegister={async () => {
+                                            if (address) {
+                                                await dispatch(registerTier(address));
+                                            }
+                                        }}
+                                        onDistribute={async (index: number) => {
+                                            if (address) {
+                                                await dispatch(distributeTierRoyalty(index));
+                                            }
+                                        }}
                                     />
                                 )}
                             </div>
