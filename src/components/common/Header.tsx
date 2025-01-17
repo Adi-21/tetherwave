@@ -1,15 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { IoMenu, IoClose } from "react-icons/io5";
 import Container from "./Container";
-import { Button } from "../ui/Button";
-import { useMetaMask } from "@/hooks/useMetaMask";
-import { truncateAddress } from "@/lib/utils/format";
+import { WalletConnect } from "../WalletConnect";
 
 const navItems = [
   { name: "Staking", href: "" },
@@ -19,17 +16,8 @@ const navItems = [
 ];
 
 const Header = () => {
-  const router = useRouter();
   const pathname = usePathname();
-  const { account, connectWallet } = useMetaMask();
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const handleConnect = async () => {
-    await connectWallet();
-    if (account) {
-      router.push('/dashboard');
-    }
-  };
 
   const NavLinks = ({ className }: { className?: string }) => (
     <nav
@@ -39,9 +27,8 @@ const Header = () => {
         <Link
           key={item.name}
           href={item.href}
-          className={`font-medium px-4 py-0.5 transition-all duration-300  hover:text-gray-100 text-lg ${
-            pathname === item.href ? "text-gray-200" : "text-gray-300"
-          }`}
+          className={`font-medium px-4 py-0.5 transition-all duration-300  hover:text-gray-100 text-lg ${pathname === item.href ? "text-gray-200" : "text-gray-300"
+            }`}
           onClick={() => isMobileMenuOpen && setMobileMenuOpen(false)}
         >
           {item.name}
@@ -65,13 +52,7 @@ const Header = () => {
             <NavLinks />
           </section>
           <section className="flex items-center gap-4">
-            <Button
-              variant="default"
-              onClick={handleConnect}
-              className="!bg-[#f3ba2f] !text-black hover:!bg-[#f3ba2f]/90 !h-10 !font-semibold !transition-all !duration-300 !flex !items-center"
-            >
-              {account ? truncateAddress(account) : "Connect Wallet"}
-            </Button>
+            <WalletConnect />
 
             <button
               type="button"
@@ -85,9 +66,8 @@ const Header = () => {
       </Container>
 
       <div
-        className={`fixed inset-0 flex lg:hidden bg-black/50  backdrop-blur w-full h-screen z-[100] transform transition-all duration-500 ${
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-0 flex lg:hidden bg-black/50  backdrop-blur w-full h-screen z-[100] transform transition-all duration-500 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="relative w-full h-full p-6 bg-black/90  text-white backdrop-blur">
           <div className="px-4">

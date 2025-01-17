@@ -29,14 +29,15 @@ const DashboardPage = memo(() => {
     currentPage,
     recentIncomes,
     directSponsor,
-    matrixSponsor
+    matrixSponsor,
+    isRegistered
   } = useSelector((state: RootState) => state.dashboard);
 
   const { address } = useAccount();
 
   const { data: usdtBalance } = useBalance({
     address,
-    token: '0x55d398326f99059fF775485246999027B3197955',
+    token: '0xe6Ad72C499ce626b10De645E25BbAb40C5A34C9f',
   });
 
   const balances = {
@@ -56,12 +57,12 @@ const DashboardPage = memo(() => {
     }
 
     try {
-      const result = await dispatch(registerUser({ 
+      await dispatch(registerUser({ 
         referrerAddress, 
-        balance: balances.usdt 
+        balance: balances.usdt,
+        userAddress: address 
       })).unwrap();
       toast.success("Registration successful!");
-      return result;
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Registration failed');
     }
@@ -71,13 +72,55 @@ const DashboardPage = memo(() => {
     if (!address) return;
 
     try {
-      await dispatch(upgradeUser({ 
-        targetLevel, 
-        balance: balances.usdt 
-      })).unwrap();
-      toast.success(`Successfully upgraded to Level ${targetLevel}!`);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Upgrade failed');
+        // Show initial toast when upgrade starts
+        const loadingToast = toast.loading('Upgrade Started', {
+            position: 'top-center'
+        });
+
+        await dispatch(upgradeUser({ 
+            targetLevel, 
+            balance: balances.usdt,
+            userAddress: address
+        })).unwrap();
+
+        // Dismiss the loading toast
+        toast.dismiss(loadingToast);
+
+        // Show processing toast
+        const processingToast = toast.loading('Upgrade level is in processing...', {
+            position: 'top-center'
+        });
+
+        // Wait for transaction confirmation (you might need to adjust this timing)
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        // Dismiss the processing toast
+        toast.dismiss(processingToast);
+
+        // Show success toast
+        toast.success(`Successfully upgraded to Level ${targetLevel}!`, {
+            duration: 5000,
+            position: 'top-center',
+            style: {
+                background: '#DCFCE7',
+                color: '#166534',
+                border: '1px solid #166534'
+            }
+        });
+    } catch (error: unknown) {
+        console.error('Upgrade error in component:', error);
+        const errorMessage = error instanceof Error ? error.message : 
+            typeof error === 'object' && error && 'message' in error ? error.message : 
+            'Upgrade failed';
+        toast.error(errorMessage, {
+            duration: 5000,
+            position: 'top-center',
+            style: {
+                background: '#FEE2E2',
+                color: '#DC2626',
+                border: '1px solid #DC2626'
+            }
+        });
     }
   }, [address, balances.usdt, dispatch]);
 
@@ -98,19 +141,20 @@ const DashboardPage = memo(() => {
           matrixSponsorId={truncateAddress(matrixSponsor?.matrixSponsor[0] || '0x')}
         />
         <WalletDetails
-          isLoading={isLoading}
-          address={address || '0x'}
+          address={address}
           usdtBalance={balances.usdt}
           referralCode={address || '0x'}
         />
       </div>
 
-      <Registration
-        referrerAddress={referrerAddress}
-        setReferrerAddress={(address: string) => void dispatch(setReferrerAddress(address))}
-        handleRegister={() => void handleRegister(referrerAddress)}
-      />
-
+      {!isRegistered && (
+        <Registration
+          referrerAddress={referrerAddress}
+          setReferrerAddress={(address: string) => void dispatch(setReferrerAddress(address))}
+          handleRegister={() => void handleRegister(referrerAddress)}
+        />
+      )}
+      
       <Packages 
         currentLevel={userStatsData?.currentLevel || 0} 
         handleUpgrade={handleUpgrade} 

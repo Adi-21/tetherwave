@@ -149,3 +149,25 @@ export interface RoyaltyState {
         tier4: LegProgress;
     };
 }
+
+export interface DownlineByDepthPaginated {
+    downlineAddresses: string[];
+    sponsorAddresses: string[];
+    directReferralsCount: number[];
+    currentLevels: number[];
+    totalCount: number;
+}
+
+export interface DirectReferralDataPaginated {
+    referralData: ReferralData[];
+    totalCount: number;
+}
+
+export interface UserRoyaltyInfo {
+    achievedTiers: boolean[];
+    paidDays: string[];
+    daysRemaining: string[];
+    nextClaimTime: string[];
+    totalEarned: string[];
+    qualifiedNewTiers: boolean[];
+}

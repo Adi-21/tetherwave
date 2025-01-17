@@ -1,34 +1,24 @@
 'use client';
 
 import "./globals.css";
-import { Providers } from '@/providers/Providers';
+import '@rainbow-me/rainbowkit/styles.css';
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import { WagmiProvider, createConfig, http } from 'wagmi';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { opBNBTestnet } from 'viem/chains';
-
-const config = createConfig({
-  chains: [opBNBTestnet],
-  transports: {
-    [opBNBTestnet.id]: http()
-  }
-});
-
-const queryClient = new QueryClient();
+import { ClientProviders } from '@/providers/ClientProviders';
+import { Providers } from '@/providers/Providers';
+import { Toaster } from "react-hot-toast";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
         <ThemeProvider>
-          <Providers>
-            <WagmiProvider config={config}>
-              <QueryClientProvider client={queryClient}>
-                {children}
-              </QueryClientProvider>
-            </WagmiProvider>
-          </Providers>
+          <ClientProviders>
+            <Providers>
+              {children}
+            </Providers>
+          </ClientProviders>
         </ThemeProvider>
+        <Toaster position="top-right" />
       </body>
     </html>
   );

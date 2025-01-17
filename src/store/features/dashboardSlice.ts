@@ -2,6 +2,8 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import type { UserStats, RecentIncomeEvents, Sponsor, RoyaltyInfo, LegProgress } from '@/types/contract';
 import { useContract } from '@/hooks/useContract';
 import { getContracts } from '@/lib/constants/contracts';
+import { LEVELS } from '@/lib/constants';
+import { contractUtils } from '@/lib/utils/contractUtils';
 
 interface DashboardState {
     isLoading: boolean;
@@ -215,17 +217,37 @@ export const fetchDashboardData = createAsyncThunk(
 // Register User
 export const registerUser = createAsyncThunk(
     'dashboard/register',
-    async ({ referrerAddress, balance }: { referrerAddress: string, balance: string }, { dispatch }) => {
-        dispatch(setLoading(true));
+    async ({ referrerAddress, balance, userAddress }: { 
+        referrerAddress: string, 
+        balance: string,
+        userAddress: string 
+    }, { dispatch }) => {
         try {
-            const contract = useContract();
-            await contract.register(referrerAddress, balance);
-            return await dispatch(fetchDashboardData('')).unwrap();
+            const { tetherWave, usdt } = getContracts();
+            
+            // Check USDT allowance first
+            const currentAllowance = await usdt.publicClient.readContract({
+                ...usdt,
+                functionName: 'allowance',
+                args: [userAddress, tetherWave.address]
+            }) as bigint;
+
+            const registrationCost = BigInt(11 * 10 ** 18); // 11 USDT
+
+            // Approve if needed
+            if (currentAllowance < registrationCost) {
+                await contractUtils.approve(userAddress as `0x${string}`, registrationCost);
+            }
+
+            // Now proceed with registration
+            await contractUtils.register(userAddress as `0x${string}`, referrerAddress, balance);
+            
+            // Refresh dashboard data
+            await dispatch(fetchDashboardData(userAddress)).unwrap();
+            return userAddress;
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Registration failed';
-            throw new Error(message);
-        } finally {
-            dispatch(setLoading(false));
+            console.error('Registration error:', error);
+            throw new Error(error instanceof Error ? error.message : 'Registration failed');
         }
     }
 );
@@ -233,17 +255,35 @@ export const registerUser = createAsyncThunk(
 // Upgrade User
 export const upgradeUser = createAsyncThunk(
     'dashboard/upgrade',
-    async ({ targetLevel, balance }: { targetLevel: number, balance: string }, { dispatch }) => {
-        dispatch(setLoading(true));
+    async ({ targetLevel, balance, userAddress }: { 
+        targetLevel: number, 
+        balance: string, 
+        userAddress: string,
+    }, { dispatch }) => {
         try {
-            const contract = useContract();
-            await contract.upgrade(targetLevel, balance);
-            return await dispatch(fetchDashboardData('')).unwrap();
+            const { tetherWave, usdt } = getContracts();
+            
+            const requiredAmount = LEVELS[targetLevel - 1].amount;
+            if (!requiredAmount) {
+                throw new Error('Invalid upgrade level');
+            }
+
+            const currentAllowance = await usdt.publicClient.readContract({
+                ...usdt,
+                functionName: 'allowance',
+                args: [userAddress, tetherWave.address]
+            }) as bigint;
+
+            if (currentAllowance < requiredAmount) {
+                await contractUtils.approve(userAddress as `0x${string}`, BigInt(requiredAmount));
+            }
+            
+            await contractUtils.upgrade(userAddress as `0x${string}`, targetLevel, balance);
+            await dispatch(fetchDashboardData(userAddress)).unwrap();
+            return userAddress;
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Upgrade failed';
-            throw new Error(message);
-        } finally {
-            dispatch(setLoading(false));
+            console.error('Upgrade error in slice:', error);
+            throw error; // Just rethrow without wrapping
         }
     }
 );
