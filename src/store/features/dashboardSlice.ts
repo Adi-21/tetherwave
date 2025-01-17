@@ -472,6 +472,27 @@ export const fetchPackagesData = createAsyncThunk(
     }
 );
 
+export const fetchWalletData = createAsyncThunk(
+    'dashboard/fetchWalletData',
+    async (address: string, { rejectWithValue }) => {
+        try {
+            const { tetherWave } = getContracts();
+            
+            const referralCode = await tetherWave.publicClient.readContract({
+                ...tetherWave,
+                functionName: 'getReferralCode',
+                args: [address]
+            }) as string;
+
+            return {
+                referralCode
+            };
+        } catch (error) {
+            return rejectWithValue('Failed to fetch wallet data');
+        }
+    }
+);
+
 const dashboardSlice = createSlice({
     name: 'dashboard',
     initialState,
@@ -597,6 +618,23 @@ const dashboardSlice = createSlice({
             .addCase(fetchPackagesData.rejected, (state, action) => {
                 state.packages.isLoading = false;
                 state.packages.error = action.error.message || 'Failed to fetch packages data';
+            })
+
+            // Wallet reducers
+            .addCase(fetchWalletData.pending, (state) => {
+                state.wallet.isLoading = true;
+                state.wallet.error = null;
+            })
+            .addCase(fetchWalletData.fulfilled, (state, action) => {
+                state.wallet.isLoading = false;
+                state.wallet.data = {
+                    balance: '0',
+                    referralCode: action.payload.referralCode
+                };
+            })
+            .addCase(fetchWalletData.rejected, (state, action) => {
+                state.wallet.isLoading = false;
+                state.wallet.error = action.error.message || 'Failed to fetch wallet data';
             });
     }
 });

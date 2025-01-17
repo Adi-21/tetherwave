@@ -1,126 +1,74 @@
-import React, { useState } from "react";
-import { Wallet, Copy, Link2, FileInput, CircleDollarSign, Flame } from "lucide-react";
+import { memo, useCallback } from "react";
+import { Wallet, Copy, Link2, CircleDollarSign, Flame } from "lucide-react";
 import { truncateAddress } from "@/lib/utils/format";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useUSDTBalance } from '@/hooks/useUSDTBalance';
-import { formatUnits } from 'viem';
+import { toast } from 'react-hot-toast';
 
 interface WalletDetailsProps {
-  address: string | undefined;
-  usdtBalance: string;
-  referralCode: string | null;
+  address: string;
+  referralCode: string;
 }
 
-const WalletDetails = ({
-  address,
-  referralCode,
-}: WalletDetailsProps) => {
-  const [isCopied, setIsCopied] = useState(false);
-  const { formatted: usdtBalance, isLoading, balance } = useUSDTBalance(address as `0x${string}`);
+interface WalletItemProps {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  copyable?: boolean;
+  onCopy?: () => void;
+}
 
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch {
-      return null;
-    }
-  };
+const WalletItem = memo(({ icon: Icon, label, value, copyable, onCopy }: WalletItemProps) => (
+  <div className="flex items-center space-x-2 px-4 py-4 rounded-md bg-white/40 dark:bg-white/5 backdrop-blur-lg">
+    <Icon className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
+    <span className="text-sm font-medium">{label}:</span>
+    <span className="font-bold">{value}</span>
+    {copyable && (
+      <button type="button" onClick={onCopy} className="ml-2 hover:text-primary">
+        <Copy className="h-4 w-4" />
+      </button>
+    )}
+  </div>
+));
+
+const WalletDetails = memo(({ address, referralCode }: WalletDetailsProps) => {
+  const { formatted: usdtBalance, isLoading } = useUSDTBalance(address as `0x${string}`);
+
+  const handleCopy = useCallback(async (text: string) => {
+    await navigator.clipboard.writeText(text);
+    toast.success('Copied to clipboard!');
+  }, []);
+
   return (
-    <section className="relative p-4 rounded-lg drop-shadow-lg shadow bg-gradient">
-        <div className="flex items-center space-x-2 text-lg font-bold">
-          <Wallet className="h-5 w-5" />
-          <span>Wallet Details</span>
-        </div>
-        <div className="grid lg:grid-cols-2 gap-2 lg:gap-4 mt-4">
-          <div className="flex items-center space-x-2 px-4 py-4 drop-shadow-lg shadow-inner rounded-md bg-white/40 dark:bg-white/5 backdrop-blur-lg">
-            <FileInput className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Address:</span>
-            <span className="font-bold">
-              {address ? truncateAddress(address) : "Not Connected"}
-            </span>
-          </div>
-          <div className="flex items-center space-x-2 px-4 py-4 drop-shadow-lg shadow-inner rounded-md bg-white/40 dark:bg-white/5 backdrop-blur-lg">
-            <Flame className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Balance:</span>
-            <ConnectButton.Custom>
-              {({ account, chain, authenticationStatus, mounted }) => {
-                const ready = mounted && authenticationStatus !== "loading";
-                const connected =
-                  ready &&
-                  account &&
-                  chain &&
-                  (!authenticationStatus ||
-                    authenticationStatus === "authenticated");
-
-                return (
-                  <div
-                    {...(!ready && {
-                      "aria-hidden": true,
-                      style: {
-                        opacity: 0,
-                        pointerEvents: "none",
-                        userSelect: "none",
-                      },
-                    })}
-                  >
-                    <span className="font-bold">
-                      {!connected
-                        ? "Not Connected"
-                        : account?.displayBalance
-                        ? ` ${account.balanceFormatted}`
-                        : `0.0000 ${chain?.name || "BNB"}`}
-                    </span>
-                  </div>
-                );
-              }}
-            </ConnectButton.Custom>
-          </div>
-          <div className="flex items-center space-x-2 px-4 py-4 drop-shadow-lg shadow-inner rounded-md bg-white/40 dark:bg-white/5 backdrop-blur-lg">
-            <CircleDollarSign className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">USDT Balance:</span>
-            <span className="font-bold">
-              {isLoading ? (
-                "Loading..."
-              ) : (
-                `${formatUnits(balance, 18)} USDT`
-              )}
-            </span>
-          </div>
-          <div className="flex items-center space-x-2 px-4 py-3 drop-shadow-lg shadow-inner rounded-md bg-white/40 dark:bg-white/5 backdrop-blur-lg">
-            <Link2 className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Referral Link:</span>
-            <div className="flex items-center space-x-2">
-              <button
-                type="button"
-                className="flex items-center space-x-2 cursor-pointer referral-link"
-                onClick={() => {
-                  const element = document.querySelector(".referral-link");
-                  const referralLink =
-                    element?.getAttribute("data-referral") ||
-                    `${window.location.origin}/dashboard/?ref=${referralCode}`;
-                  copyToClipboard(referralLink);
-                }}
-              >
-                <span className="bg-gradient-button text-white px-2 py-1 rounded font-medium">
-                  {referralCode
-                    ? truncateAddress(referralCode)
-                    : "Not Generated"}
-                </span>
-                <Copy
-                  className={`h-4 w-4 transition-colors ${
-                    isCopied
-                      ? "text-green-500"
-                      : "text-muted-foreground hover:text-black"
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
+    <section className="relative p-4 rounded-lg bg-white/40 dark:bg-white/5 backdrop-blur-lg">
+      <div className="flex items-center space-x-2 text-lg font-bold">
+        <Wallet className="h-5 w-5" />
+        <span>Wallet Details</span>
+      </div>
+      <div className="flex flex-col gap-2 mt-4">
+        <WalletItem
+          icon={Link2}
+          label="Address"
+          value={truncateAddress(address || '0x')}
+          copyable
+          onCopy={() => handleCopy(address || '')}
+        />
+        <WalletItem
+          icon={CircleDollarSign}
+          label="USDT Balance"
+          value={isLoading ? "Loading..." : `${usdtBalance} USDT`}
+        />
+        <WalletItem
+          icon={Flame}
+          label="Referral Code"
+          value={truncateAddress(referralCode || '0x')}
+          copyable
+          onCopy={() => handleCopy(referralCode || '')}
+        />
+      </div>
     </section>
   );
-};
+});
+
+WalletDetails.displayName = "WalletDetails";
 
 export default WalletDetails;
