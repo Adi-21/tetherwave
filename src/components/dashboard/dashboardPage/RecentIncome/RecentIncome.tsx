@@ -5,6 +5,7 @@ import Skeleton from "@/components/common/Skeleton";
 import { formatEther } from "viem";
 import { truncateAddress } from "@/lib/utils/format";
 import { formatDistanceToNow } from 'date-fns';
+import Pagination from "./Pagination";
 
 interface RecentIncomeProps {
     recentIncomes: RecentIncomeEvents;
@@ -41,13 +42,14 @@ const IncomeEventCard = memo(({ address, level, amount, timestamp }: IncomeEvent
 
 const RecentIncome = memo(({
     recentIncomes,
-    currentLevel,
     currentPage,
     setCurrentPage,
     itemsPerPage,
     isLoading
 }: RecentIncomeProps) => {
     const totalPages = Math.ceil(recentIncomes.totalCount / itemsPerPage);
+    const startEntry = (currentPage - 1) * itemsPerPage + 1;
+    const endEntry = Math.min(currentPage * itemsPerPage, recentIncomes.totalCount);
 
     return (
         <div className="mt-4 lg:mt-8 w-full">
@@ -59,11 +61,31 @@ const RecentIncome = memo(({
                 <div className="p-4 lg:px-6 lg:pb-6 flex flex-col gap-4">
                     {isLoading ? (
                         <>
-                            <Skeleton className="h-20 w-full" />
-                            <Skeleton className="h-20 w-full" />
-                            <Skeleton className="h-20 w-full" />
-                            <Skeleton className="h-20 w-full" />
-                            <Skeleton className="h-20 w-full" />
+                            <div className="flex flex-col lg:flex-row justify-between items-center gap-2 p-4 rounded-lg bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md h-[68px]">
+                                <div className="w-full h-full">
+                                    <Skeleton className="h-full w-full" />
+                                </div>
+                            </div>
+                            <div className="flex flex-col lg:flex-row justify-between items-center gap-2 p-4 rounded-lg bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md h-[68px]">
+                                <div className="w-full h-full">
+                                    <Skeleton className="h-full w-full" />
+                                </div>
+                            </div>
+                            <div className="flex flex-col lg:flex-row justify-between items-center gap-2 p-4 rounded-lg bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md h-[68px]">
+                                <div className="w-full h-full">
+                                    <Skeleton className="h-full w-full" />
+                                </div>
+                            </div>
+                            <div className="flex flex-col lg:flex-row justify-between items-center gap-2 p-4 rounded-lg bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md h-[68px]">
+                                <div className="w-full h-full">
+                                    <Skeleton className="h-full w-full" />
+                                </div>
+                            </div>
+                            <div className="flex flex-col lg:flex-row justify-between items-center gap-2 p-4 rounded-lg bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md h-[68px]">
+                                <div className="w-full h-full">
+                                    <Skeleton className="h-full w-full" />
+                                </div>
+                            </div>
                         </>
                     ) : recentIncomes.userAddresses.length > 0 ? (
                         <>
@@ -77,21 +99,14 @@ const RecentIncome = memo(({
                                 />
                             ))}
                             {totalPages > 1 && (
-                                <div className="flex justify-center items-center gap-2 mt-4">
-                                    {Array.from({ length: totalPages }, (_, i) => (
-                                        <button
-                                            type="button"
-                                            key={`${i + 1}`}
-                                            onClick={() => setCurrentPage(i + 1)}
-                                            className={`px-3 py-1 rounded ${currentPage === i + 1
-                                                    ? 'bg-purple-600 text-white'
-                                                    : 'bg-gray-200 dark:bg-gray-700'
-                                                }`}
-                                        >
-                                            {i + 1}
-                                        </button>
-                                    ))}
-                                </div>
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={setCurrentPage}
+                                    startEntry={startEntry}
+                                    endEntry={endEntry}
+                                    totalCount={recentIncomes.totalCount}
+                                />
                             )}
                         </>
                     ) : (

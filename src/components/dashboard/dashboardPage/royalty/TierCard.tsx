@@ -1,15 +1,17 @@
-import { memo, useMemo, useEffect } from 'react';
+import { memo, useMemo, useEffect, lazy, Suspense } from 'react';
 import type { TierCardProps } from '@/types/contract';
 import { useDispatch } from 'react-redux';
 import { registerTier, distributeTierRoyalty } from '@/store/features/royaltySlice';
-import TierStatus from './TierStatus';
-import TierProgressBar from './TierProgressBar';
-import TierStats from './TierStats';
-import TierInfo from './TierInfo';
 import { GRADIENTS } from '@/lib/constants';
 import { formatRoyaltyAmount } from '@/lib/utils/contractHelpers';
 import type { AppDispatch } from '@/store';
 import { useAccount } from 'wagmi';
+import Skeleton from '@/components/common/Skeleton';
+
+const TierInfo = lazy(() => import('./TierInfo'));
+const TierProgressBar = lazy(() => import('./TierProgressBar'));
+const TierStats = lazy(() => import('./TierStats'));
+const TierStatus = lazy(() => import('./TierStatus'));
 
 const TierCard = memo(({
     slab,
@@ -75,41 +77,43 @@ const TierCard = memo(({
     // };
 
     return (
-        <div className={`relative drop-shadow shadow-md px-4 lg:px-8 py-4 min-h-48 rounded-md overflow-hidden transition-all duration-300 ${GRADIENTS.card}`}>
-            <TierInfo
-                title={slab.title}
-                isAchieved={cardData.isAchieved}
-                isQualified={cardData.isQualified}
-            />
-            <div className="mt-2 space-y-4">
-                <div className="flex flex-col gap-4">
-                    <TierProgressBar
-                        label="Strong Leg"
-                        progress={calculations.strongLegProgress(tier)}
-                        value={cardData.stats.strongLeg}
-                        required={cardData.stats.required}
-                        className="bg-green-600"
+        <Suspense fallback={<Skeleton className="h-full w-full" />}>
+            <div className={`relative drop-shadow shadow-md px-4 lg:px-8 py-4 min-h-48 rounded-md overflow-hidden transition-all duration-300 ${GRADIENTS.card}`}>
+                <TierInfo
+                    title={slab.title}
+                    isAchieved={cardData.isAchieved}
+                    isQualified={cardData.isQualified}
+                />
+                <div className="mt-2 space-y-4">
+                    <div className="flex flex-col gap-4">
+                        <TierProgressBar
+                            label="Strong Leg"
+                            progress={calculations.strongLegProgress(tier)}
+                            value={cardData.stats.strongLeg}
+                            required={cardData.stats.required}
+                            className="bg-green-600"
+                        />
+                        <TierProgressBar
+                            label="Weak Leg"
+                            progress={calculations.weakLegProgress(tier)}
+                            value={cardData.stats.weakLeg}
+                            required={cardData.stats.required}
+                            className="bg-blue"
+                        />
+                    </div>
+
+                    <TierStats 
+                        index={index}
+                        royaltyInfo={royaltyData.royaltyInfo}
                     />
-                    <TierProgressBar
-                        label="Weak Leg"
-                        progress={calculations.weakLegProgress(tier)}
-                        value={cardData.stats.weakLeg}
-                        required={cardData.stats.required}
-                        className="bg-blue"
+
+                    <TierStatus
+                        isQualified={cardData.isQualified}
+                        isAchieved={cardData.isAchieved}
                     />
                 </div>
-
-                <TierStats 
-                    index={index}
-                    royaltyInfo={royaltyData.royaltyInfo}
-                />
-
-                <TierStatus
-                    isQualified={cardData.isQualified}
-                    isAchieved={cardData.isAchieved}
-                />
             </div>
-        </div>
+        </Suspense>
     );
 });
 
