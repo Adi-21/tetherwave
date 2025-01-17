@@ -2,7 +2,6 @@ import { memo, useMemo } from "react";
 import { LuBoxes } from "react-icons/lu";
 import { LEVELS } from "@/lib/constants/levels";
 import type { PackagesProps } from "@/types/contract";
-import Skeleton from "@/components/common/Skeleton";
 
 interface PackageCardProps {
   levelInfo: typeof LEVELS[number];

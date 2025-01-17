@@ -99,7 +99,7 @@ export interface TierCardProps {
         };
     };
     calculations: {
-        totalPoolAmount: () => string;
+        totalPoolAmount: (index: number) => string;
         strongLegProgress: (tier: LegProgress) => number;
         weakLegProgress: (tier: LegProgress) => number;
     };

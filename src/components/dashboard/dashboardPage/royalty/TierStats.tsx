@@ -9,67 +9,98 @@ interface TierStatsProps {
     royaltyInfo: RoyaltyInfo | null;
 }
 
-const TierStats = memo(({ index, royaltyInfo }: TierStatsProps) => {
-    const totalEarned = useMemo(() => {
-        if (!royaltyInfo?.totalEarned[index]) return '0.00 USDT';
-        return `+${formatRoyaltyAmount(BigInt(royaltyInfo.totalEarned[index]))}`;
-    }, [royaltyInfo?.totalEarned, index]);
+interface StatBoxProps {
+    title: string;
+    value: string;
+    alignRight?: boolean;
+}
 
-    const poolAmount = useMemo(() => {
-        const totalDays = BigInt(500);
-        const amount = TIER_AMOUNTS[index] * totalDays;
-        return `${formatRoyaltyAmount(amount)}`;
-    }, [index]);
+interface StatRowProps {
+    icon: React.ReactNode;
+    label: string;
+    value: string;
+    valueClassName?: string;
+}
+
+const TierStats = memo(({ index, royaltyInfo }: TierStatsProps) => {
+    const stats = useMemo(() => ({
+        totalEarned: !royaltyInfo?.totalEarned[index]
+            ? '0.00 USDT'
+            : `+${formatRoyaltyAmount(BigInt(royaltyInfo.totalEarned[index]))}`,
+        poolAmount: (() => {
+            const totalDays = BigInt(500);
+            const amount = TIER_AMOUNTS[index] * totalDays;
+            return formatRoyaltyAmount(amount);
+        })(),
+        paidDays: royaltyInfo?.paidDays?.[index]
+            ? Number(royaltyInfo.paidDays[index])
+            : '0',
+        daysRemaining: royaltyInfo?.daysRemaining?.[index]
+            ? Number(royaltyInfo.daysRemaining[index])
+            : '0',
+        nextClaim: royaltyInfo?.nextClaimTime?.[index]
+            ? new Date(Number(royaltyInfo.nextClaimTime[index]) * 1000).toLocaleDateString()
+            : 'N/A'
+    }), [royaltyInfo, index]);
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                    <HandCoins className="w-4 h-4" />
-                    <span className="text-sm">Paid Days:</span>
-                </div>
-                <span className="font-medium">
-                    {royaltyInfo?.paidDays?.[index] ? Number(royaltyInfo.paidDays[index]) : '0'}
-                </span>
-            </div>
+            <StatRow
+                icon={<HandCoins className="w-4 h-4" />}
+                label="Paid Days"
+                value={stats.paidDays.toString()}
+            />
 
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                    <BookmarkPlus className="w-4 h-4" />
-                    <span className="text-sm">Days Remaining:</span>
-                </div>
-                <span className="font-semibold text-red-500">
-                    {royaltyInfo?.daysRemaining?.[index] ? Number(royaltyInfo.daysRemaining[index]) : '0'}
-                </span>
-            </div>
+            <StatRow
+                icon={<BookmarkPlus className="w-4 h-4" />}
+                label="Days Remaining"
+                value={stats.daysRemaining.toString()}
+                valueClassName="font-semibold text-red-500"
+            />
 
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                    <ArrowRightSquare className="w-4 h-4" />
-                    <span className="text-sm">Next Claim:</span>
-                </div>
-                <span className="font-medium">
-                    {royaltyInfo?.nextClaimTime?.[index]
-                        ? new Date(Number(royaltyInfo.nextClaimTime[index]) * 1000).toLocaleDateString()
-                        : 'N/A'
-                    }
-                </span>
-            </div>
+            <StatRow
+                icon={<ArrowRightSquare className="w-4 h-4" />}
+                label="Next Claim"
+                value={stats.nextClaim.toString()}
+            />
 
             <div className="flex justify-between items-center bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-lg p-3 lg:p-4 drop-shadow-lg shadow">
-                <div className="flex flex-col justify-between items-center">
-                    <h3 className="text-lg font-semibold">Total Earned</h3>
-                    <p className="text-2xl font-bold text-green-600">{totalEarned}</p>
-                </div>
-                <div className="flex flex-col justify-between items-end">
-                    <h3 className="text-lg font-semibold">Total Pool Amount</h3>
-                    <p className="text-2xl font-bold text-green-600">{poolAmount}</p>
-                </div>
+                <StatBox
+                    title="Total Earned"
+                    value={stats.totalEarned.toString()}
+                />
+                <StatBox
+                    title="Total Pool Amount"
+                    value={stats.poolAmount.toString()}
+                    alignRight
+                />
             </div>
         </div>
     );
 });
 
 TierStats.displayName = 'TierStats';
+
+// Extract repeated UI patterns into components
+const StatRow = memo(({ icon, label, value, valueClassName = "font-medium" }: StatRowProps) => (
+    <div className="flex justify-between items-center">
+        <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+            {icon}
+            <span className="text-sm">{label}:</span>
+        </div>
+        <span className={valueClassName}>{value}</span>
+    </div>
+));
+
+StatRow.displayName = 'StatRow';
+
+const StatBox = memo(({ title, value, alignRight }: StatBoxProps) => (
+    <div className={`flex flex-col justify-between ${alignRight ? 'items-end' : 'items-center'}`}>
+        <h3 className="text-lg font-semibold">{title}</h3>
+        <p className="text-2xl font-bold text-green-600">{value}</p>
+    </div>
+));
+
+StatBox.displayName = 'StatBox';
 
 export default TierStats; 

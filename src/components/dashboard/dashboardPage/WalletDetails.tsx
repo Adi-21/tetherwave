@@ -30,6 +30,8 @@ const WalletItem = memo(({ icon: Icon, label, value, copyable, onCopy }: WalletI
   </div>
 ));
 
+WalletItem.displayName = 'WalletItem';
+
 const WalletDetails = memo(({ address, referralCode }: WalletDetailsProps) => {
   const { formatted: usdtBalance, isLoading } = useUSDTBalance(address as `0x${string}`);
 

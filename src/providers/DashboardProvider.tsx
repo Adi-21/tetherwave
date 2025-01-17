@@ -6,9 +6,8 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // Simulate initial data loading
     setTimeout(() => {
-      dispatch(setLoading(false));
+      dispatch(setLoading({ isLoading: false, error: '' }));
     }, 1500);
   }, [dispatch]);
 

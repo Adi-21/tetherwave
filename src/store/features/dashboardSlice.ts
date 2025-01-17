@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import type { UserStats, RecentIncomeEvents, Sponsor, RoyaltyInfo, LegProgress } from '@/types/contract';
+import type { RecentIncomeEvents } from '@/types/contract';
 import { getContracts } from '@/lib/constants/contracts';
 import { LEVELS } from '@/lib/constants';
 
@@ -15,6 +15,11 @@ const LEVEL_COSTS = {
     9: BigInt(2816 * 10 ** 18),
     10: BigInt(5632 * 10 ** 18),
 } as const;
+
+interface ContractError {
+    message?: string;
+    code?: string;
+}
 
 // Component-specific states
 interface ProfileState {
@@ -87,6 +92,7 @@ interface RecentIncomeState {
 
 // Main dashboard state
 export interface DashboardState {
+    isLoading: boolean;
     profile: ProfileState;
     wallet: WalletState;
     registration: RegistrationState;
@@ -165,7 +171,8 @@ const initialState: DashboardState = {
             totalPages: 1
         }
     },
-    globalError: null
+    globalError: null,
+    isLoading: true,
 };
 
 // Thunks for Profile and Wallet
@@ -196,7 +203,7 @@ export const fetchProfileData = createAsyncThunk(
                 directSponsor: matrixPosition[0],
                 matrixSponsor: matrixPosition[1],
             };
-        } catch (error) {
+        } catch {
             return rejectWithValue('Failed to fetch profile data');
         }
     }
@@ -266,7 +273,7 @@ export const register = createAsyncThunk(
 // Upgrade package thunk
 export const upgrade = createAsyncThunk(
     'dashboard/upgrade',
-    async ({ targetLevel, userAddress, balance }: { 
+    async ({ targetLevel, userAddress }: { 
         targetLevel: number; 
         userAddress: string;
         balance: string;
@@ -325,7 +332,7 @@ export const upgrade = createAsyncThunk(
             console.error('Contract error:', error);
             
             if (typeof error === 'object' && error !== null) {
-                const err = error as any;
+                const err = error as ContractError;
                 if (err.message?.includes('0xfb8f41b2')) {
                     return rejectWithValue('❌ Insufficient USDT Allowance!\nPlease approve USDT spending first.');
                 }
@@ -378,7 +385,7 @@ export const fetchAllIncomesData = createAsyncThunk(
                 totalTeamSize: Number(teamSize[0])
             };
             return result;
-        } catch (error) {
+        } catch {
             return rejectWithValue('Failed to fetch all incomes data');
         }
     }
@@ -413,7 +420,7 @@ export const fetchRecentIncomeData = createAsyncThunk(
                 timestamps: recentIncomes[3],
                 totalCount: Number(recentIncomes[4])
             };
-        } catch (error) {
+        } catch {
             return rejectWithValue('Failed to fetch recent income data');
         }
     }
@@ -444,7 +451,7 @@ export const fetchRankIncomeData = createAsyncThunk(
                 directCommission: userStats[3].toString()
             };
             return result;
-        } catch (error) {
+        } catch {
             return rejectWithValue('Failed to fetch rank income data');
         }
     }
@@ -466,7 +473,7 @@ export const fetchPackagesData = createAsyncThunk(
                 currentLevel: Number(userStats[0]),
                 isRegistered: userStats[0]
             };
-        } catch (error) {
+        } catch {
             return rejectWithValue('Failed to fetch packages data');
         }
     }
@@ -487,7 +494,7 @@ export const fetchWalletData = createAsyncThunk(
             return {
                 referralCode
             };
-        } catch (error) {
+        } catch {
             return rejectWithValue('Failed to fetch wallet data');
         }
     }
@@ -497,6 +504,10 @@ const dashboardSlice = createSlice({
     name: 'dashboard',
     initialState,
     reducers: {
+        setLoading: (state, action: PayloadAction<{ isLoading: boolean; error: string }>) => {
+            state.isLoading = action.payload.isLoading;
+            state.globalError = action.payload.error;
+        },
         setReferrerAddress: (state, action: PayloadAction<string>) => {
             state.registration.referrerAddress = action.payload;
         },
@@ -643,6 +654,7 @@ export const {
     setReferrerAddress, 
     resetRegistrationError, 
     resetUpgradeError,
-    setRecentIncomePage 
+    setRecentIncomePage,
+    setLoading
 } = dashboardSlice.actions;
 export default dashboardSlice.reducer;
