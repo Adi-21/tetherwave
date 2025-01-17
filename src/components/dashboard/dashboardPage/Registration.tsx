@@ -1,4 +1,4 @@
-import React from "react";
+import { memo } from 'react';
 import { LuKey } from "react-icons/lu";
 
 interface RegistrationProps {
@@ -7,10 +7,10 @@ interface RegistrationProps {
   handleRegister: () => void;
 }
 
-const Registration = ({
-  referrerAddress,
-  setReferrerAddress,
-  handleRegister,
+const Registration = memo(({ 
+  referrerAddress, 
+  setReferrerAddress, 
+  handleRegister 
 }: RegistrationProps) => {
   return (
     <div className="mt-4 lg:mt-8 w-full">
@@ -37,6 +37,8 @@ const Registration = ({
       </div>
     </div>
   );
-};
+});
+
+Registration.displayName = 'Registration';
 
 export default Registration;

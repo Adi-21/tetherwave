@@ -1,96 +1,76 @@
-import React, { useState } from "react";
-import { LuCircleDollarSign, LuCopy, LuFileInput, LuFlame, LuLink2, LuWallet } from "react-icons/lu";
+import { memo, useCallback } from "react";
+import { Wallet, Copy, Link2, CircleDollarSign, Flame } from "lucide-react";
 import { truncateAddress } from "@/lib/utils/format";
-import Skeleton from "@/components/common/Skeleton";
+import { useUSDTBalance } from '@/hooks/useUSDTBalance';
+import { toast } from 'react-hot-toast';
 
 interface WalletDetailsProps {
   address: string;
-  usdtBalance: string;
   referralCode: string;
-  isLoading: boolean;
 }
 
-const WalletDetails = ({
-  address,
-  usdtBalance,
-  referralCode,
-  isLoading
-}: WalletDetailsProps) => {
-  const [isCopied, setIsCopied] = useState(false);
+interface WalletItemProps {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  copyable?: boolean;
+  onCopy?: () => void;
+}
 
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch {
-      return null;
-    }
-  };
+const WalletItem = memo(({ icon: Icon, label, value, copyable, onCopy }: WalletItemProps) => (
+  <div className="flex items-center space-x-2 px-4 py-4 rounded-md bg-white/40 dark:bg-white/5 backdrop-blur-lg">
+    <Icon className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
+    <span className="text-sm font-medium">{label}:</span>
+    <span className="font-bold">{value}</span>
+    {copyable && (
+      <button type="button" onClick={onCopy} className="ml-2 hover:text-primary">
+        <Copy className="h-4 w-4" />
+      </button>
+    )}
+  </div>
+));
+
+WalletItem.displayName = 'WalletItem';
+
+const WalletDetails = memo(({ address, referralCode }: WalletDetailsProps) => {
+  const { formatted: usdtBalance, isLoading } = useUSDTBalance(address as `0x${string}`);
+
+  const handleCopy = useCallback(async (text: string) => {
+    await navigator.clipboard.writeText(text);
+    toast.success('Copied to clipboard!');
+  }, []);
 
   return (
-    <section className="relative p-4 rounded-lg drop-shadow-lg shadow bg-gradient">
+    <section className="relative p-4 rounded-lg bg-white/40 dark:bg-white/5 backdrop-blur-lg">
       <div className="flex items-center space-x-2 text-lg font-bold">
-        <LuWallet className="h-5 w-5" />
+        <Wallet className="h-5 w-5" />
         <span>Wallet Details</span>
       </div>
-      <div className="grid lg:grid-cols-2 gap-2 lg:gap-4 mt-4">
-        {isLoading ? (
-          <>
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
-          </>
-        ) : (
-          <>
-            <div className="flex items-center space-x-2 px-4 py-4 drop-shadow-lg rounded-md bg-white/40 dark:bg-white/5">
-              <LuFileInput className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Address:</span>
-              <span className="font-bold">
-                {address ? truncateAddress(address) : "Not Connected"}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2 px-4 py-4 drop-shadow-lg rounded-md bg-white/40 dark:bg-white/5">
-              <LuFlame className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Balance:</span>
-              <span className="font-bold">Not Connected</span>
-            </div>
-            <div className="flex items-center space-x-2 px-4 py-4 drop-shadow-lg rounded-md bg-white/40 dark:bg-white/5">
-              <LuCircleDollarSign className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">USDT Balance:</span>
-              <span className="font-bold">
-                {usdtBalance ? `${usdtBalance} USDT` : "0.0 USDT"}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2 px-4 py-3 drop-shadow-lg rounded-md bg-white/40 dark:bg-white/5">
-              <LuLink2 className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Referral Link:</span>
-              <div className="flex items-center space-x-2">
-                <button
-                  type="button"
-                  className="flex items-center space-x-2 cursor-pointer referral-link"
-                  onClick={() => {
-                    const referralLink = `${window.location.origin}/dashboard/?ref=${referralCode}`;
-                    copyToClipboard(referralLink);
-                  }}
-                >
-                  <span className="bg-gradient-button text-white px-2 py-1 rounded font-medium">
-                    {referralCode ? truncateAddress(referralCode) : "Not Generated"}
-                  </span>
-                  <LuCopy
-                    className={`h-4 w-4 transition-colors ${
-                      isCopied ? "text-green-500" : "text-muted-foreground hover:text-green-600 hover:dark:text-green-300"
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-          </>
-        )}
+      <div className="flex flex-col gap-2 mt-4">
+        <WalletItem
+          icon={Link2}
+          label="Address"
+          value={truncateAddress(address || '0x')}
+          copyable
+          onCopy={() => handleCopy(address || '')}
+        />
+        <WalletItem
+          icon={CircleDollarSign}
+          label="USDT Balance"
+          value={isLoading ? "Loading..." : `${usdtBalance} USDT`}
+        />
+        <WalletItem
+          icon={Flame}
+          label="Referral Code"
+          value={truncateAddress(referralCode || '0x')}
+          copyable
+          onCopy={() => handleCopy(referralCode || '')}
+        />
       </div>
     </section>
   );
-};
+});
+
+WalletDetails.displayName = "WalletDetails";
 
 export default WalletDetails;

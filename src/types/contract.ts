@@ -4,6 +4,7 @@ export interface LevelInfo {
     name: string
     amount: number
     color: string
+    isLoading: boolean;
 }
 
 export interface UserStats {
@@ -13,6 +14,7 @@ export interface UserStats {
     directCommissionEarned: string;
     levelIncomeEarned: string;
     timestamp: number;
+    totalTeamSize: number;
 }
 
 export interface RecentIncomeEvents {
@@ -97,7 +99,7 @@ export interface TierCardProps {
         };
     };
     calculations: {
-        totalPoolAmount: () => string;
+        totalPoolAmount: (index: number) => string;
         strongLegProgress: (tier: LegProgress) => number;
         weakLegProgress: (tier: LegProgress) => number;
     };
@@ -129,7 +131,8 @@ export interface RecentIncomeProps {
 
 export interface PackagesProps {
     currentLevel: number;
-    handleUpgrade: (level: number, amount: number) => void;
+    handleUpgrade: (level: number, amount: number) => Promise<void>;
+    isLoading: boolean;
 }
 
 export interface TierData {
@@ -148,4 +151,26 @@ export interface RoyaltyState {
         tier3: LegProgress;
         tier4: LegProgress;
     };
+}
+
+export interface DownlineByDepthPaginated {
+    downlineAddresses: string[];
+    sponsorAddresses: string[];
+    directReferralsCount: number[];
+    currentLevels: number[];
+    totalCount: number;
+}
+
+export interface DirectReferralDataPaginated {
+    referralData: ReferralData[];
+    totalCount: number;
+}
+
+export interface UserRoyaltyInfo {
+    achievedTiers: boolean[];
+    paidDays: string[];
+    daysRemaining: string[];
+    nextClaimTime: string[];
+    totalEarned: string[];
+    qualifiedNewTiers: boolean[];
 }

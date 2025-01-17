@@ -1,12 +1,13 @@
 import { memo } from "react";
 import type { UserStats } from "@/types/contract";
 import Skeleton from "@/components/common/Skeleton";
+import { LuWallet } from "react-icons/lu";
 import { GRADIENTS } from '@/lib/constants';
 
 interface AllIncomesProps {
   userStats: UserStats | null;
-  upgradeReferralIncome: bigint | null | undefined;
-  totalTeamSize: number | undefined;
+  upgradeReferralIncome: bigint | null;
+  totalTeamSize: number;
   isLoading: boolean;
 }
 
@@ -27,10 +28,9 @@ const IncomeCard = memo(({ title, value, isAmount = false }: IncomeCardProps) =>
   </div>
 ));
 
-IncomeCard.displayName = 'IncomeCard';
-
-const formatBigIntToUSDT = (value: bigint): string => {
-    return (Number(value) / 1e18).toFixed(2);
+const formatBigIntToUSDT = (value: bigint | null | undefined): string => {
+  if (!value) return "0.00";
+  return (Number(value) / 1e18).toFixed(2);
 };
 
 const AllIncomes = memo(({
@@ -39,29 +39,60 @@ const AllIncomes = memo(({
   totalTeamSize,
   isLoading
 }: AllIncomesProps) => (
-  <div className="flex flex-col lg:flex-row justify-between items-start gap-4 w-full mt-4 lg:mt-8 text-nowrap">
-    {isLoading ? (
-      <>
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-      </>
-    ) : (
-      <>
-        <IncomeCard title="Total Income" value={userStats?.totalEarnings ? formatBigIntToUSDT(BigInt(userStats.totalEarnings)) : "0"} isAmount />
-        <IncomeCard title="Referral Income" value={userStats?.directCommissionEarned ? formatBigIntToUSDT(BigInt(userStats.directCommissionEarned)) : "0"} isAmount />
-        <IncomeCard title="Level Income" value={userStats?.levelIncomeEarned ? formatBigIntToUSDT(BigInt(userStats.levelIncomeEarned)) : "0"} isAmount />
-        <IncomeCard title="Direct Referral" value={userStats?.directReferrals?.toString() || "0"} />
-        <IncomeCard title="Upgrade Referral Income" value={upgradeReferralIncome ? formatBigIntToUSDT(upgradeReferralIncome) : "0"} isAmount />
-        <IncomeCard title="Total Team Size" value={totalTeamSize?.toString() || "0"} />
-      </>
-    )}
+  <div className="mt-4 lg:mt-8 w-full">
+    <div className="rounded-lg drop-shadow-lg shadow bg-gradient">
+      <div className="flex items-center space-x-2 text-lg font-bold px-4 lg:px-6 pt-4 pb-2 lg:pt-6">
+        <LuWallet className="h-5 w-5" />
+        <span>Income Overview</span>
+      </div>
+      <div className="p-4 lg:px-6 lg:pb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {isLoading ? (
+          <>
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </>
+        ) : (
+          <>
+            <IncomeCard 
+              title="Total Income" 
+              value={userStats?.totalEarnings ? formatBigIntToUSDT(BigInt(userStats.totalEarnings)) : "0"} 
+              isAmount 
+            />
+            <IncomeCard 
+              title="Referral Income" 
+              value={userStats?.directCommissionEarned ? formatBigIntToUSDT(BigInt(userStats.directCommissionEarned)) : "0"} 
+              isAmount 
+            />
+            <IncomeCard 
+              title="Level Income" 
+              value={userStats?.levelIncomeEarned ? formatBigIntToUSDT(BigInt(userStats.levelIncomeEarned)) : "0"} 
+              isAmount 
+            />
+            <IncomeCard 
+              title="Direct Referral" 
+              value={userStats?.directReferrals?.toString() || "0"} 
+            />
+            <IncomeCard 
+              title="Upgrade Referral Income" 
+              value={upgradeReferralIncome ? formatBigIntToUSDT(upgradeReferralIncome) : "0"} 
+              isAmount 
+            />
+            <IncomeCard 
+              title="Total Team Size" 
+              value={totalTeamSize?.toString() || "0"} 
+            />
+          </>
+        )}
+      </div>
+    </div>
   </div>
 ));
 
+IncomeCard.displayName = 'IncomeCard';
 AllIncomes.displayName = 'AllIncomes';
 
 export default AllIncomes;
