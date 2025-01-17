@@ -12,43 +12,50 @@ import RankIncome from "./RankIncome/RankIncome";
 import RecentIncome from "./RecentIncome/RecentIncome";
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch, RootState } from '@/store';
-import { setReferrerAddress, setCurrentPage, fetchDashboardData, registerUser, upgradeUser } from '@/store/features/dashboardSlice';
+import { setReferrerAddress, register, upgrade, setRecentIncomePage, fetchRecentIncomeData, fetchRankIncomeData, fetchProfileData, fetchAllIncomesData } from '@/store/features/dashboardSlice';
 import { toast } from 'react-hot-toast';
 import { useAccount, useBalance } from 'wagmi';
 import { truncateAddress } from "@/lib/utils/format";
-
+import type { DashboardState } from '@/store/features/dashboardSlice';
 
 const DashboardPage = memo(() => {
   const dispatch = useDispatch<AppDispatch>();
-  const {
-    isLoading,
-    userStatsData,
-    levelIncomesData,
-    itemsPerPage,
-    referrerAddress,
-    currentPage,
-    recentIncomes,
-    directSponsor,
-    matrixSponsor,
-    isRegistered
-  } = useSelector((state: RootState) => state.dashboard);
-
   const { address } = useAccount();
-
-  const { data: usdtBalance, refetch: refetchBalance } = useBalance({
-    address,
-    token: '0xe6Ad72C499ce626b10De645E25BbAb40C5A34C9f',
-  });
-
-  const balances = {
-    usdt: usdtBalance?.formatted || '0.0'
-  };
+  const { data: balance } = useBalance({ address });
 
   useEffect(() => {
     if (address) {
-      void dispatch(fetchDashboardData(address));
+      console.log('Fetching data for address:', address);
+      Promise.all([
+        dispatch(fetchProfileData(address)),
+        dispatch(fetchAllIncomesData(address)),
+        dispatch(fetchRankIncomeData(address)),
+        dispatch(fetchRecentIncomeData({ 
+          address, 
+          page: 1, 
+          itemsPerPage: 5 
+        }))
+      ]).then(() => {
+        console.log('All data fetched successfully');
+      }).catch((error) => {
+        console.error('Error fetching data:', error);
+      });
     }
-  }, [address, dispatch]);
+  }, [dispatch, address]);
+
+  const { 
+    profile,
+    wallet,
+    registration,
+    packages,
+    allIncomes,
+    rankIncome,
+    recentIncome 
+  } = useSelector((state: RootState) => state.dashboard as DashboardState);
+
+  const balances = {
+    usdt: balance?.formatted || '0.0'
+  };
 
   const handleRegister = useCallback(async (referrerAddress: string) => {
     if (!address || !referrerAddress) {
@@ -57,32 +64,26 @@ const DashboardPage = memo(() => {
     }
 
     try {
-      // Show initial registration toast
       const loadingToast = toast.loading('Registration Started', {
         position: 'top-center'
       });
 
-      await dispatch(registerUser({ 
+      await dispatch(register({ 
         referrerAddress, 
         balance: balances.usdt,
         userAddress: address 
       })).unwrap();
 
-      // Dismiss the loading toast
       toast.dismiss(loadingToast);
 
-      // Show processing toast
       const processingToast = toast.loading('Registration is in processing...', {
         position: 'top-center'
       });
 
-      // Wait for transaction confirmation
       await new Promise(resolve => setTimeout(resolve, 5000));
 
-      // Dismiss the processing toast
       toast.dismiss(processingToast);
 
-      // Show success toast
       toast.success("Registration successful!", {
         duration: 5000,
         position: 'top-center',
@@ -95,7 +96,7 @@ const DashboardPage = memo(() => {
     } catch (error: unknown) {
       console.error('Registration error:', error);
       const errorMessage = error instanceof Error ? error.message : 
-        typeof error === 'object' && error && 'message' in error ? error.message : 
+        typeof error === 'object' && error && 'message' in error ? String(error.message) : 
         'Registration failed';
       toast.error(errorMessage, {
         duration: 5000,
@@ -113,55 +114,50 @@ const DashboardPage = memo(() => {
     if (!address) return;
 
     try {
-        const loadingToast = toast.loading('Upgrade Started', {
-            position: 'top-center'
-        });
+      const loadingToast = toast.loading('Upgrade Started', {
+        position: 'top-center'
+      });
 
-        await dispatch(upgradeUser({ 
-            targetLevel, 
-            balance: balances.usdt,
-            userAddress: address
-        })).unwrap();
+      await dispatch(upgrade({ 
+        targetLevel, 
+        balance: balances.usdt,
+        userAddress: address
+      })).unwrap();
 
-        toast.dismiss(loadingToast);
+      toast.dismiss(loadingToast);
 
-        const processingToast = toast.loading('Upgrade level is in processing...', {
-            position: 'top-center'
-        });
+      const processingToast = toast.loading('Upgrade level is in processing...', {
+        position: 'top-center'
+      });
 
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        
-        // Refresh balance after transaction
-        await refetchBalance();
-        
-        toast.dismiss(processingToast);
-        toast.success(`Successfully upgraded to Level ${targetLevel}!`, {
-            duration: 5000,
-            position: 'top-center',
-            style: {
-                background: '#DCFCE7',
-                color: '#166534',
-                border: '1px solid #166534'
-            }
-        });
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      
+      toast.dismiss(processingToast);
+      toast.success(`Successfully upgraded to Level ${targetLevel}!`, {
+        duration: 5000,
+        position: 'top-center',
+        style: {
+          background: '#DCFCE7',
+          color: '#166534',
+          border: '1px solid #166534'
+        }
+      });
     } catch (error: unknown) {
-        console.error('Upgrade error in component:', error);
-        const errorMessage = error instanceof Error ? error.message : 
-            typeof error === 'object' && error && 'message' in error ? error.message : 
-            'Upgrade failed';
-        toast.error(errorMessage, {
-            duration: 5000,
-            position: 'top-center',
-            style: {
-                background: '#FEE2E2',
-                color: '#DC2626',
-                border: '1px solid #DC2626'
-            }
-        });
+      console.error('Upgrade error:', error);
+      const errorMessage = error instanceof Error ? error.message : 
+        typeof error === 'object' && error && 'message' in error ? String(error.message) : 
+        'Upgrade failed';
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: 'top-center',
+        style: {
+          background: '#FEE2E2',
+          color: '#DC2626',
+          border: '1px solid #DC2626'
+        }
+      });
     }
-  }, [address, balances.usdt, dispatch, refetchBalance]);
-
-  const levelIncomes = levelIncomesData.map(val => BigInt(val));
+  }, [address, balances.usdt, dispatch]);
 
   return (
     <div className="flex flex-col justify-center items-center gap-4 w-full overflow-hidden">
@@ -171,67 +167,83 @@ const DashboardPage = memo(() => {
 
       <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 text-nowrap w-full">
         <ProfileDetails
-          userProfileData={null}
-          isLoading={isLoading}
-          currentLevel={userStatsData?.currentLevel || 0}
-          directSponsorId={truncateAddress(directSponsor?.directSponsor[0] || '0x')}
-          matrixSponsorId={truncateAddress(matrixSponsor?.matrixSponsor[0] || '0x')}
+          userProfileData={{
+            userStats: null,
+            levelIncomes: [],
+            frontend_id: truncateAddress(address || '0x'),
+            isLoading: profile.isLoading
+          }}
+          isLoading={profile.isLoading}
+          currentLevel={profile.data.currentLevel}
+          directSponsorId={truncateAddress(profile.data.directSponsor)}
+          matrixSponsorId={truncateAddress(profile.data.matrixSponsor)}
         />
         <WalletDetails
           address={address}
           usdtBalance={balances.usdt}
-          referralCode={address || '0x'}
+          referralCode={wallet.data.referralCode || address || '0x'}
         />
       </div>
 
-      {!isRegistered && (
+      {!registration.isRegistered && (
         <Registration
-          referrerAddress={referrerAddress}
-          setReferrerAddress={(address: string) => void dispatch(setReferrerAddress(address))}
-          handleRegister={() => void handleRegister(referrerAddress)}
+          referrerAddress={registration.referrerAddress}
+          setReferrerAddress={(address: string) => dispatch(setReferrerAddress(address))}
+          handleRegister={() => void handleRegister(registration.referrerAddress)}
         />
       )}
       
       <Packages 
-        currentLevel={userStatsData?.currentLevel || 0} 
-        handleUpgrade={handleUpgrade} 
+        currentLevel={packages.currentLevel} 
+        handleUpgrade={handleUpgrade}
+        isLoading={packages.isLoading}
       />
 
-      <AllIncomes
-        userStats={userStatsData}
-        upgradeReferralIncome={null}
-        totalTeamSize={2}
-        isLoading={isLoading}
+      <AllIncomes 
+        userStats={{
+          totalEarnings: allIncomes.data.totalIncome,
+          directCommissionEarned: allIncomes.data.referralIncome,
+          levelIncomeEarned: allIncomes.data.levelIncome,
+          directReferrals: allIncomes.data.directReferrals,
+          currentLevel: profile.data.currentLevel,
+          timestamp: Math.floor(Date.now() / 1000),
+          totalTeamSize: allIncomes.data.totalTeamSize
+        }}
+        upgradeReferralIncome={BigInt(allIncomes.data.upgradeReferralIncome)}
+        totalTeamSize={allIncomes.data.totalTeamSize}
+        isLoading={allIncomes.isLoading}
       />
+
       <RankIncome 
-        userStats={userStatsData}
-        levelIncomes={levelIncomes}
-        isLoading={isLoading}
-      />
-      {/* <section className="mt-4 lg:mt-8 w-full">
-        <h3 className="text-2xl lg:text-5xl font-bold pb-4 lg:pb-8 text-center text-3d dark:text-3d-dark bg-gradient-to-r from-pink via-purple to-blue text-transparent/10 bg-clip-text">
-          Fortune Founder Reward
-        </h3>
-        <RoyaltySlab />
-      </section> */}
-      <RecentIncome
-        recentIncomes={recentIncomes}
-        currentLevel={userStatsData?.currentLevel || 0}
-        currentPage={currentPage}
-        setCurrentPage={(page: number) => dispatch(setCurrentPage(page))}
-        itemsPerPage={itemsPerPage}
-        isLoading={isLoading}
+        userStats={{
+          totalEarnings: rankIncome.data.levelIncomes.reduce(
+            (acc, val) => acc + (typeof val === 'string' ? BigInt(val.replace(/,/g, '')) : BigInt(0)), 
+            BigInt(0)
+          ).toString(),
+          directCommissionEarned: rankIncome.data.directCommission,
+          levelIncomeEarned: rankIncome.data.levelIncomes.reduce(
+            (acc, val) => acc + (typeof val === 'string' ? BigInt(val.replace(/,/g, '')) : BigInt(0)), 
+            BigInt(0)
+          ).toString(),
+          directReferrals: allIncomes.data.directReferrals,
+          currentLevel: profile.data.currentLevel,
+          timestamp: Math.floor(Date.now() / 1000),
+          totalTeamSize: allIncomes.data.totalTeamSize
+        }}
+        levelIncomes={rankIncome.data.levelIncomes.map(val => 
+          typeof val === 'string' ? BigInt(val.replace(/,/g, '')) : BigInt(0)
+        )}
+        isLoading={rankIncome.isLoading || profile.isLoading}
       />
 
-      <div className="text-center text-xs lg:text-sm font-bold mt-4 lg:mt-8 mb-2 w-full">
-        <p>TetherWave Contract opbnb.bscscan</p>
-        <Link
-          href="https://opbnb-testnet.bscscan.com/address/0xad7284Bf6fB1c725a7500C51b71847fEf2D2d17C"
-          className="text-yellow-600 hover:underline"
-        >
-          (0xad7284Bf6fB1c725a7500C51b71847fEf2D2d17C)
-        </Link>
-      </div>
+      <RecentIncome
+        recentIncomes={recentIncome.data}
+        currentLevel={profile.data.currentLevel}
+        currentPage={recentIncome.pagination.currentPage}
+        setCurrentPage={(page: number) => dispatch(setRecentIncomePage(page))}
+        itemsPerPage={recentIncome.pagination.itemsPerPage}
+        isLoading={recentIncome.isLoading}
+      />
     </div>
   );
 });

@@ -4,6 +4,7 @@ export interface LevelInfo {
     name: string
     amount: number
     color: string
+    isLoading: boolean;
 }
 
 export interface UserStats {
@@ -131,6 +132,7 @@ export interface RecentIncomeProps {
 export interface PackagesProps {
     currentLevel: number;
     handleUpgrade: (level: number, amount: number) => void;
+    isLoading: boolean;
 }
 
 export interface TierData {

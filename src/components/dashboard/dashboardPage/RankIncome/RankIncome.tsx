@@ -1,25 +1,52 @@
 import { memo, useMemo } from "react";
-import { LEVELS } from "@/lib/constants";
-import type { RankIncomeProps } from "@/types/contract";
+import type { UserStats } from "@/types/contract";
 import { LuLandmark } from "react-icons/lu";
-import RankCard from "./RankCard";
+import { LEVELS } from '@/lib/constants';
 import Skeleton from "@/components/common/Skeleton";
 import { formatEther } from "viem";
 
-const RankIncome = memo(({ userStats, levelIncomes, isLoading }: RankIncomeProps) => {
-    const formattedLevelIncomes = useMemo(() =>
-        LEVELS.slice(1).map((level, index) => ({
-            id: level.id,
-            name: level.name,
-            amount: levelIncomes[index + 1]?.toString() ?? "0",
-        })),
-        [levelIncomes]
-    );
+interface RankIncomeProps {
+    userStats: UserStats | null;
+    levelIncomes: bigint[];
+    isLoading: boolean;
+}
 
-    const directCommission = useMemo(() => 
-        userStats?.directCommissionEarned?.toString() ?? "0",
-        [userStats?.directCommissionEarned]
-    );
+interface RankCardProps {
+    title: string;
+    amount: string;
+}
+
+const RankCard = memo(({ title, amount }: RankCardProps) => (
+    <div className="flex flex-col justify-center items-center p-4 rounded-lg bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md">
+        <div className="flex flex-col justify-center items-center gap-2">
+            <p className="text-lg font-bold text-center">{title}</p>
+            <p className="font-bold text-green-600">
+                +{Number(amount).toFixed(2)} USDT
+            </p>
+        </div>
+    </div>
+));
+
+const RankIncome = memo(({ userStats, levelIncomes, isLoading }: RankIncomeProps) => {
+
+    const formattedLevelIncomes = useMemo(() => {
+        const result = LEVELS.slice(1).map((level, index) => {
+
+            return {
+                id: level.id,
+                name: level.name,
+                amount: levelIncomes[index + 1]
+                    ? formatEther(levelIncomes[index + 1])
+                    : "0"
+            };
+        });
+        return result;
+    }, [levelIncomes]);
+
+    const directCommission = useMemo(() => {
+        const result = userStats?.directCommissionEarned ? userStats.directCommissionEarned : "0";
+        return result;
+    }, [userStats?.directCommissionEarned]);
 
     return (
         <div className="mt-4 lg:mt-8 w-full">
@@ -28,9 +55,11 @@ const RankIncome = memo(({ userStats, levelIncomes, isLoading }: RankIncomeProps
                     <LuLandmark className="h-5 w-5" />
                     <span>Rank Income</span>
                 </div>
-                <div className="p-4 lg:px-6 lg:pb-6 grid gap-4 md:grid-cols-2 h-80 lg:h-auto overflow-auto">
+                <div className="p-4 lg:px-6 lg:pb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {isLoading ? (
                         <>
+                            <Skeleton className="h-32 w-full" />
+                            <Skeleton className="h-32 w-full" />
                             <Skeleton className="h-32 w-full" />
                             <Skeleton className="h-32 w-full" />
                             <Skeleton className="h-32 w-full" />
@@ -38,9 +67,16 @@ const RankIncome = memo(({ userStats, levelIncomes, isLoading }: RankIncomeProps
                         </>
                     ) : (
                         <>
-                            <RankCard title={LEVELS[0].name} amount={formatEther(BigInt(directCommission))} />
+                            <RankCard
+                                title={LEVELS[0].name}
+                                amount={formatEther(BigInt(directCommission))}
+                            />
                             {formattedLevelIncomes.map((level) => (
-                                <RankCard key={level.id} title={level.name} amount={formatEther(BigInt(level.amount))} />
+                                <RankCard
+                                    key={level.id}
+                                    title={level.name}
+                                    amount={level.amount}
+                                />
                             ))}
                         </>
                     )}
@@ -50,6 +86,7 @@ const RankIncome = memo(({ userStats, levelIncomes, isLoading }: RankIncomeProps
     );
 });
 
+RankCard.displayName = 'RankCard';
 RankIncome.displayName = 'RankIncome';
 
 export default RankIncome; 

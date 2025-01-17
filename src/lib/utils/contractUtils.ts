@@ -259,16 +259,6 @@ export const contractUtils = {
         return data;
     },  
 
-    async getReferralCount(address: Address): Promise<number> {
-        const { tetherWave } = getContracts();
-        const count = await tetherWave.publicClient.readContract({
-            ...tetherWave,
-            functionName: 'getReferralCount',
-            args: [address]
-        }) as number;
-        return count;
-    }, 
-
     async getTeamSizes(userAddress: Address): Promise<number[]> {
         if (!userAddress) return [];
         try {
