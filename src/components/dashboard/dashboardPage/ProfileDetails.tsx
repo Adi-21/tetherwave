@@ -7,6 +7,7 @@ import Skeleton from "@/components/common/Skeleton";
 interface ProfileDetailsProps {
   userProfileData: UserProfileData | null;
   currentLevel: number;
+  levelName: string;
   directSponsorId: string;
   matrixSponsorId: string;
   isLoading: boolean;
@@ -37,10 +38,12 @@ const ProfileDetails = memo(
   ({
     userProfileData,
     currentLevel,
+    levelName,
     directSponsorId,
     matrixSponsorId,
     isLoading,
   }: ProfileDetailsProps) => {
+
     const rankName = "Unknown";
     const activationDate = "Not Available";
 
@@ -68,7 +71,7 @@ const ProfileDetails = memo(
               <ProfileItem
                 icon={LuCrown}
                 label="Rank"
-                value={`${currentLevel} - ${rankName}`}
+                value={`${currentLevel} - ${levelName}`}
               />
               <ProfileItem
                 icon={LuCalendar}

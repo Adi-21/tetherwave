@@ -4,6 +4,17 @@ import { getContracts } from '@/lib/constants/contracts';
 import { LEVELS } from '@/lib/constants';
 
 const REGISTRATION_COST = BigInt(11 * 10 ** 18); 
+const LEVEL_COSTS = {
+    2: BigInt(22 * 10 ** 18),
+    3: BigInt(44 * 10 ** 18),
+    4: BigInt(88 * 10 ** 18),
+    5: BigInt(176 * 10 ** 18),
+    6: BigInt(352 * 10 ** 18),
+    7: BigInt(704 * 10 ** 18),
+    8: BigInt(1408 * 10 ** 18),
+    9: BigInt(2816 * 10 ** 18),
+    10: BigInt(5632 * 10 ** 18),
+} as const;
 
 // Component-specific states
 interface ProfileState {
@@ -11,6 +22,7 @@ interface ProfileState {
     error: string | null;
     data: {
         currentLevel: number;
+        levelName: string;
         directSponsor: string;
         matrixSponsor: string;
     };
@@ -91,6 +103,7 @@ const initialState: DashboardState = {
         error: null,
         data: {
             currentLevel: 0,
+            levelName: 'Not Registered',
             directSponsor: '',
             matrixSponsor: ''
         }
@@ -162,26 +175,26 @@ export const fetchProfileData = createAsyncThunk(
         try {
             const { tetherWave } = getContracts();
             
-            // Fetch matrix position
-            const matrixPosition = await tetherWave.publicClient.readContract({
-                ...tetherWave,
-                functionName: 'getMatrixPosition',
-                args: [address]
-            }) as [string, string, bigint];
-
-            // Fetch user stats for additional profile data
             const userStats = await tetherWave.publicClient.readContract({
                 ...tetherWave,
                 functionName: 'getUserStats',
                 args: [address]
-            }) as [boolean, number, number, number, number, number];
+            }) as [boolean, number, bigint, bigint, bigint, number, boolean];
+
+            const matrixPosition = await tetherWave.publicClient.readContract({
+                ...tetherWave,
+                functionName: 'getMatrixPosition',
+                args: [address]
+            }) as [string, string];
             
+            const currentLevel = Number(userStats[0]);
+            const levelName = LEVELS[currentLevel]?.name || 'Not Registered';
+
             return {
+                currentLevel,
+                levelName,
                 directSponsor: matrixPosition[0],
                 matrixSponsor: matrixPosition[1],
-                currentLevel: Number(matrixPosition[2]),
-                isRegistered: userStats[0], // registration status
-                referralCode: address // using address as referral code
             };
         } catch (error) {
             return rejectWithValue('Failed to fetch profile data');
@@ -253,29 +266,50 @@ export const register = createAsyncThunk(
 // Upgrade package thunk
 export const upgrade = createAsyncThunk(
     'dashboard/upgrade',
-    async ({ 
-        targetLevel, 
-        userAddress,
-        balance 
-    }: { 
+    async ({ targetLevel, userAddress, balance }: { 
         targetLevel: number; 
         userAddress: string;
         balance: string;
     }, { rejectWithValue }) => {
         try {
-            const { tetherWave } = getContracts();
+            const { tetherWave, usdt } = getContracts();
             
-            const requiredAmount = LEVELS[targetLevel + 1].amount;
+            // Check USDT balance first
+            const userBalance = await usdt.publicClient.readContract({
+                ...usdt,
+                functionName: 'balanceOf',
+                args: [userAddress as `0x${string}`]
+            }) as bigint;
+
+            const requiredAmount = LEVEL_COSTS[targetLevel as keyof typeof LEVEL_COSTS];
             if (!requiredAmount) {
-                throw new Error('Invalid upgrade level');
+                return rejectWithValue('Invalid upgrade level');
             }
 
-            const currentBalance = BigInt(Number.parseFloat(balance) * 10 ** 18);
-
-            if (currentBalance < requiredAmount) {
-                throw new Error(`Insufficient USDT balance for upgrading to level ${targetLevel}. You need ${Number(requiredAmount) / 10 ** 18} USDT but have ${balance} USDT.`);
+            if (userBalance < requiredAmount) {
+                const formattedRequired = Number(requiredAmount) / 10 ** 18;
+                const formattedBalance = Number(userBalance) / 10 ** 18;
+                return rejectWithValue(`❌ Insufficient USDT Balance!\n\nRequired: ${formattedRequired} USDT\nYour Balance: ${formattedBalance} USDT`);
             }
-    
+
+            // Check allowance
+            const approveAmount = BigInt(10000 * 10 ** 18);
+            const allowance = await usdt.publicClient.readContract({
+                ...usdt,
+                functionName: 'allowance',
+                args: [userAddress as `0x${string}`, tetherWave.address]
+            }) as bigint;
+
+            if (allowance < approveAmount) {
+                const approveHash = await usdt.walletClient.writeContract({
+                    ...usdt,
+                    functionName: 'approve',
+                    args: [tetherWave.address, approveAmount],
+                    account: userAddress as `0x${string}`
+                });
+                await tetherWave.publicClient.waitForTransactionReceipt({ hash: approveHash });
+            }
+
             const { request } = await tetherWave.publicClient.simulateContract({
                 ...tetherWave,
                 functionName: 'upgrade',
@@ -284,20 +318,26 @@ export const upgrade = createAsyncThunk(
             });
 
             const hash = await tetherWave.walletClient.writeContract(request);
-            const receipt = await tetherWave.publicClient.waitForTransactionReceipt({ hash });
+            await tetherWave.publicClient.waitForTransactionReceipt({ hash });
 
-            if (receipt.status === 'success') {
-                return { 
-                    targetLevel,
-                    transactionHash: hash 
-                };
+            return { targetLevel, transactionHash: hash };
+        } catch (error: unknown) {
+            console.error('Contract error:', error);
+            
+            if (typeof error === 'object' && error !== null) {
+                const err = error as any;
+                if (err.message?.includes('0xfb8f41b2')) {
+                    return rejectWithValue('❌ Insufficient USDT Allowance!\nPlease approve USDT spending first.');
+                }
+                if (err.message?.includes('0xe450d38c')) {
+                    return rejectWithValue('❌ Insufficient USDT Balance!\nPlease check your balance and try again.');
+                }
+                if (error instanceof Error) {
+                    return rejectWithValue(error.message);
+                }
             }
+            
             return rejectWithValue('Upgrade failed');
-        } catch (error) {
-            if (error instanceof Error) {
-                return rejectWithValue(error.message);
-            }
-            return rejectWithValue('Failed to upgrade');
         }
     }
 );
@@ -406,6 +446,28 @@ export const fetchRankIncomeData = createAsyncThunk(
             return result;
         } catch (error) {
             return rejectWithValue('Failed to fetch rank income data');
+        }
+    }
+);
+
+export const fetchPackagesData = createAsyncThunk(
+    'dashboard/fetchPackagesData',
+    async (address: string, { rejectWithValue }) => {
+        try {
+            const { tetherWave } = getContracts();
+            
+            const userStats = await tetherWave.publicClient.readContract({
+                ...tetherWave,
+                functionName: 'getUserStats',
+                args: [address]
+            }) as [boolean, bigint, bigint, bigint, bigint, bigint];
+
+            return {
+                currentLevel: Number(userStats[0]),
+                isRegistered: userStats[0]
+            };
+        } catch (error) {
+            return rejectWithValue('Failed to fetch packages data');
         }
     }
 );
@@ -520,6 +582,21 @@ const dashboardSlice = createSlice({
             .addCase(fetchRankIncomeData.rejected, (state, action) => {
                 state.rankIncome.isLoading = false;
                 state.rankIncome.error = action.error.message || 'Failed to fetch rank income data';
+            })
+
+            // Packages reducers
+            .addCase(fetchPackagesData.pending, (state) => {
+                state.packages.isLoading = true;
+                state.packages.error = null;
+            })
+            .addCase(fetchPackagesData.fulfilled, (state, action) => {
+                state.packages.isLoading = false;
+                state.packages.currentLevel = action.payload.currentLevel;
+                state.packages.isRegistered = action.payload.isRegistered;
+            })
+            .addCase(fetchPackagesData.rejected, (state, action) => {
+                state.packages.isLoading = false;
+                state.packages.error = action.error.message || 'Failed to fetch packages data';
             });
     }
 });

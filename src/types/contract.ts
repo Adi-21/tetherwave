@@ -131,7 +131,7 @@ export interface RecentIncomeProps {
 
 export interface PackagesProps {
     currentLevel: number;
-    handleUpgrade: (level: number, amount: number) => void;
+    handleUpgrade: (level: number, amount: number) => Promise<void>;
     isLoading: boolean;
 }
 

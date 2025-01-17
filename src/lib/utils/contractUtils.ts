@@ -25,7 +25,8 @@ export const contractUtils = {
                 ...tetherWave,
                 functionName: 'getUserStats',
                 args: [address]
-            }) as [number, number, bigint, bigint, bigint, number, boolean];
+            }) as [number, number, bigint, bigint, bigint, number, bigint];
+            console.log('User Stats:', stats);
 
             return {
                 currentLevel: Number(stats[0]),

@@ -7,7 +7,7 @@ import Skeleton from "@/components/common/Skeleton";
 interface PackageCardProps {
   levelInfo: typeof LEVELS[number];
   currentLevelNum: number;
-  handleUpgrade: (level: number, amount: number) => void;
+  handleUpgrade: (level: number, amount: number) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -20,14 +20,6 @@ const PackageCard = memo(({
   const levelNum = Number(levelInfo.level);
   const isNextLevel = levelNum === currentLevelNum + 1;
   const isCompleted = levelNum <= currentLevelNum;
-
-  console.log(`PackageCard ${levelInfo.name}:`, {
-    levelNum,
-    currentLevelNum,
-    isNextLevel,
-    isCompleted,
-    isLoading
-  });
 
   return (
     <div className="relative flex flex-col items-center rounded-md transition-all duration-300">
@@ -78,14 +70,8 @@ const PackageCard = memo(({
 });
 
 const Packages = memo(({ currentLevel, handleUpgrade, isLoading }: PackagesProps) => {
-  console.log('Packages Component Props:', {
-    currentLevel,
-    isLoading
-  });
-
   const packages = useMemo(() => {
-    const result = LEVELS.slice(1);
-    console.log('Available Packages:', result);
+    const result = LEVELS.slice(0);
     return result;
   }, []);
 
@@ -96,23 +82,15 @@ const Packages = memo(({ currentLevel, handleUpgrade, isLoading }: PackagesProps
         <span>Packages (Current Level: {currentLevel})</span>
       </div>
       <div className="p-4 lg:px-6 lg:pb-6 flex lg:grid lg:grid-cols-5 gap-4 lg:gap-6 overflow-auto w-full text-nowrap">
-        {isLoading ? (
-          <>
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-32 w-full" />
-          </>
-        ) : (
-          packages.map((levelInfo) => (
-            <PackageCard
-              key={levelInfo.id}
-              levelInfo={levelInfo}
-              currentLevelNum={currentLevel}
-              handleUpgrade={handleUpgrade}
-              isLoading={isLoading}
-            />
-          ))
-        )}
+        {packages.map((levelInfo) => (
+          <PackageCard
+            key={levelInfo.id}
+            levelInfo={levelInfo}
+            currentLevelNum={currentLevel}
+            handleUpgrade={handleUpgrade}
+            isLoading={isLoading}
+          />
+        ))}
       </div>
     </div>
   );

@@ -2,7 +2,6 @@
 
 import { memo, useCallback, useEffect } from "react";
 import SocialLinks from "../SocialLinks";
-import Link from "next/link";
 import ProfileDetails from "./ProfileDetails";
 import WalletDetails from "./WalletDetails";
 import Registration from "./Registration";
@@ -12,50 +11,51 @@ import RankIncome from "./RankIncome/RankIncome";
 import RecentIncome from "./RecentIncome/RecentIncome";
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch, RootState } from '@/store';
-import { setReferrerAddress, register, upgrade, setRecentIncomePage, fetchRecentIncomeData, fetchRankIncomeData, fetchProfileData, fetchAllIncomesData } from '@/store/features/dashboardSlice';
+import { setReferrerAddress, register, upgrade, setRecentIncomePage, fetchRecentIncomeData, fetchRankIncomeData, fetchProfileData, fetchAllIncomesData, fetchPackagesData } from '@/store/features/dashboardSlice';
 import { toast } from 'react-hot-toast';
 import { useAccount, useBalance } from 'wagmi';
 import { truncateAddress } from "@/lib/utils/format";
 import type { DashboardState } from '@/store/features/dashboardSlice';
+import { LEVELS } from "@/lib/constants/levels";
+import { useUSDTBalance } from '@/hooks/useUSDTBalance';
 
 const DashboardPage = memo(() => {
   const dispatch = useDispatch<AppDispatch>();
   const { address } = useAccount();
-  const { data: balance } = useBalance({ address });
+  const { balance: usdtBalance, formatted: usdtFormatted, refetch: refetchBalance } = useUSDTBalance(address as `0x${string}`);
+
+  const balances = {
+    usdt: usdtFormatted || '0.0'
+  };
 
   useEffect(() => {
     if (address) {
-      console.log('Fetching data for address:', address);
       Promise.all([
         dispatch(fetchProfileData(address)),
         dispatch(fetchAllIncomesData(address)),
         dispatch(fetchRankIncomeData(address)),
-        dispatch(fetchRecentIncomeData({ 
-          address, 
-          page: 1, 
-          itemsPerPage: 5 
+        dispatch(fetchPackagesData(address)),
+        dispatch(fetchRecentIncomeData({
+          address,
+          page: 1,
+          itemsPerPage: 5
         }))
       ]).then(() => {
-        console.log('All data fetched successfully');
       }).catch((error) => {
         console.error('Error fetching data:', error);
       });
     }
   }, [dispatch, address]);
 
-  const { 
+  const {
     profile,
     wallet,
     registration,
     packages,
     allIncomes,
     rankIncome,
-    recentIncome 
+    recentIncome
   } = useSelector((state: RootState) => state.dashboard as DashboardState);
-
-  const balances = {
-    usdt: balance?.formatted || '0.0'
-  };
 
   const handleRegister = useCallback(async (referrerAddress: string) => {
     if (!address || !referrerAddress) {
@@ -68,10 +68,10 @@ const DashboardPage = memo(() => {
         position: 'top-center'
       });
 
-      await dispatch(register({ 
-        referrerAddress, 
+      await dispatch(register({
+        referrerAddress,
         balance: balances.usdt,
-        userAddress: address 
+        userAddress: address
       })).unwrap();
 
       toast.dismiss(loadingToast);
@@ -81,7 +81,7 @@ const DashboardPage = memo(() => {
       });
 
       await new Promise(resolve => setTimeout(resolve, 5000));
-
+      await refetchBalance();
       toast.dismiss(processingToast);
 
       toast.success("Registration successful!", {
@@ -95,9 +95,9 @@ const DashboardPage = memo(() => {
       });
     } catch (error: unknown) {
       console.error('Registration error:', error);
-      const errorMessage = error instanceof Error ? error.message : 
-        typeof error === 'object' && error && 'message' in error ? String(error.message) : 
-        'Registration failed';
+      const errorMessage = error instanceof Error ? error.message :
+        typeof error === 'object' && error && 'message' in error ? String(error.message) :
+          'Registration failed';
       toast.error(errorMessage, {
         duration: 5000,
         position: 'top-center',
@@ -108,22 +108,23 @@ const DashboardPage = memo(() => {
         }
       });
     }
-  }, [address, balances.usdt, dispatch]);
+  }, [address, balances.usdt, dispatch, refetchBalance]);
 
   const handleUpgrade = useCallback(async (targetLevel: number) => {
-    if (!address) return;
+    if (!address || !usdtBalance) return;
 
     try {
       const loadingToast = toast.loading('Upgrade Started', {
         position: 'top-center'
       });
 
-      await dispatch(upgrade({ 
-        targetLevel, 
-        balance: balances.usdt,
-        userAddress: address
+      await dispatch(upgrade({
+        targetLevel,
+        userAddress: address,
+        balance: usdtFormatted
       })).unwrap();
 
+      await refetchBalance();
       toast.dismiss(loadingToast);
 
       const processingToast = toast.loading('Upgrade level is in processing...', {
@@ -131,7 +132,12 @@ const DashboardPage = memo(() => {
       });
 
       await new Promise(resolve => setTimeout(resolve, 5000));
-      
+      await Promise.all([
+        dispatch(fetchProfileData(address)),
+        dispatch(fetchPackagesData(address))
+      ]);
+      await refetchBalance();
+
       toast.dismiss(processingToast);
       toast.success(`Successfully upgraded to Level ${targetLevel}!`, {
         duration: 5000,
@@ -144,20 +150,26 @@ const DashboardPage = memo(() => {
       });
     } catch (error: unknown) {
       console.error('Upgrade error:', error);
-      const errorMessage = error instanceof Error ? error.message : 
-        typeof error === 'object' && error && 'message' in error ? String(error.message) : 
-        'Upgrade failed';
+      toast.dismiss();
+
+      const errorMessage = error instanceof Error ? error.message :
+        typeof error === 'string' ? error : 'Upgrade failed';
+
       toast.error(errorMessage, {
         duration: 5000,
         position: 'top-center',
         style: {
           background: '#FEE2E2',
           color: '#DC2626',
-          border: '1px solid #DC2626'
+          border: '1px solid #DC2626',
+          whiteSpace: 'pre-line',
+          textAlign: 'center',
+          padding: '1rem',
+          fontWeight: 'bold'
         }
       });
     }
-  }, [address, balances.usdt, dispatch]);
+  }, [address, usdtFormatted, dispatch, usdtBalance, refetchBalance]);
 
   return (
     <div className="flex flex-col justify-center items-center gap-4 w-full overflow-hidden">
@@ -175,6 +187,7 @@ const DashboardPage = memo(() => {
           }}
           isLoading={profile.isLoading}
           currentLevel={profile.data.currentLevel}
+          levelName={profile.data.levelName}
           directSponsorId={truncateAddress(profile.data.directSponsor)}
           matrixSponsorId={truncateAddress(profile.data.matrixSponsor)}
         />
@@ -192,14 +205,14 @@ const DashboardPage = memo(() => {
           handleRegister={() => void handleRegister(registration.referrerAddress)}
         />
       )}
-      
-      <Packages 
-        currentLevel={packages.currentLevel} 
+
+      <Packages
+        currentLevel={packages.currentLevel}
         handleUpgrade={handleUpgrade}
         isLoading={packages.isLoading}
       />
 
-      <AllIncomes 
+      <AllIncomes
         userStats={{
           totalEarnings: allIncomes.data.totalIncome,
           directCommissionEarned: allIncomes.data.referralIncome,
@@ -214,15 +227,15 @@ const DashboardPage = memo(() => {
         isLoading={allIncomes.isLoading}
       />
 
-      <RankIncome 
+      <RankIncome
         userStats={{
           totalEarnings: rankIncome.data.levelIncomes.reduce(
-            (acc, val) => acc + (typeof val === 'string' ? BigInt(val.replace(/,/g, '')) : BigInt(0)), 
+            (acc, val) => acc + (typeof val === 'string' ? BigInt(val.replace(/,/g, '')) : BigInt(0)),
             BigInt(0)
           ).toString(),
           directCommissionEarned: rankIncome.data.directCommission,
           levelIncomeEarned: rankIncome.data.levelIncomes.reduce(
-            (acc, val) => acc + (typeof val === 'string' ? BigInt(val.replace(/,/g, '')) : BigInt(0)), 
+            (acc, val) => acc + (typeof val === 'string' ? BigInt(val.replace(/,/g, '')) : BigInt(0)),
             BigInt(0)
           ).toString(),
           directReferrals: allIncomes.data.directReferrals,
@@ -230,7 +243,7 @@ const DashboardPage = memo(() => {
           timestamp: Math.floor(Date.now() / 1000),
           totalTeamSize: allIncomes.data.totalTeamSize
         }}
-        levelIncomes={rankIncome.data.levelIncomes.map(val => 
+        levelIncomes={rankIncome.data.levelIncomes.map(val =>
           typeof val === 'string' ? BigInt(val.replace(/,/g, '')) : BigInt(0)
         )}
         isLoading={rankIncome.isLoading || profile.isLoading}

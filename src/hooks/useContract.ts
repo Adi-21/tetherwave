@@ -10,17 +10,17 @@ import { opBNBTestnet } from '../lib/constants/contracts'
 import { http } from 'viem'
 
 const REGISTRATION_COST = BigInt(11 * 10 ** 18); 
-// const LEVEL_COSTS = {
-//     2: BigInt(22 * 10 ** 18),
-//     3: BigInt(44 * 10 ** 18),
-//     4: BigInt(88 * 10 ** 18),  
-//     5: BigInt(176 * 10 ** 18),
-//     6: BigInt(352 * 10 ** 18),
-//     7: BigInt(704 * 10 ** 18),
-//     8: BigInt(1408 * 10 ** 18),
-//     9: BigInt(2816 * 10 ** 18),
-//     10: BigInt(5632 * 10 ** 18),
-// } as const;
+const LEVEL_COSTS = {
+    2: BigInt(22 * 10 ** 18),
+    3: BigInt(44 * 10 ** 18),
+    4: BigInt(88 * 10 ** 18),  
+    5: BigInt(176 * 10 ** 18),
+    6: BigInt(352 * 10 ** 18),
+    7: BigInt(704 * 10 ** 18),
+    8: BigInt(1408 * 10 ** 18),
+    9: BigInt(2816 * 10 ** 18),
+    10: BigInt(5632 * 10 ** 18),
+} as const;
 
 
 export function useContract() {

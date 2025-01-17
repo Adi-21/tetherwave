@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Wallet, Copy, Link2, FileInput, CircleDollarSign, Flame } from "lucide-react";
 import { truncateAddress } from "@/lib/utils/format";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useUSDTBalance } from '@/hooks/useUSDTBalance';
+import { formatUnits } from 'viem';
 
 interface WalletDetailsProps {
   address: string | undefined;
@@ -11,10 +13,10 @@ interface WalletDetailsProps {
 
 const WalletDetails = ({
   address,
-  usdtBalance,
   referralCode,
 }: WalletDetailsProps) => {
   const [isCopied, setIsCopied] = useState(false);
+  const { formatted: usdtBalance, isLoading, balance } = useUSDTBalance(address as `0x${string}`);
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -78,7 +80,13 @@ const WalletDetails = ({
           <div className="flex items-center space-x-2 px-4 py-4 drop-shadow-lg shadow-inner rounded-md bg-white/40 dark:bg-white/5 backdrop-blur-lg">
             <CircleDollarSign className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
             <span className="text-sm font-medium">USDT Balance:</span>
-            <span className="font-bold">{`${usdtBalance} USDT`}</span>
+            <span className="font-bold">
+              {isLoading ? (
+                "Loading..."
+              ) : (
+                `${formatUnits(balance, 18)} USDT`
+              )}
+            </span>
           </div>
           <div className="flex items-center space-x-2 px-4 py-3 drop-shadow-lg shadow-inner rounded-md bg-white/40 dark:bg-white/5 backdrop-blur-lg">
             <Link2 className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
