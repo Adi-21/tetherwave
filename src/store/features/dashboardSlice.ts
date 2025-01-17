@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import type { UserStats, RecentIncomeEvents, Sponsor, RoyaltyInfo, LegProgress } from '@/types/contract';
-import { useContract } from '@/hooks/useContract';
 import { getContracts } from '@/lib/constants/contracts';
 import { LEVELS } from '@/lib/constants';
 import { contractUtils } from '@/lib/utils/contractUtils';
@@ -183,9 +182,6 @@ export const fetchDashboardData = createAsyncThunk(
                         args: [_address as `0x${string}`, BigInt(0), BigInt(5)]
                     }) as [string[], number[], bigint[], number[], bigint];
                     
-                    console.log('Team Stats:', teamStats);
-                    console.log('Recent Income Events:', recentInc);
-                    
                     // Safely handle the team stats
                     if (teamStats && Array.isArray(teamStats[1])) {
                         data.levelIncomes = teamStats[1].map(income => income.toString());
@@ -208,7 +204,6 @@ export const fetchDashboardData = createAsyncThunk(
 
             return data;
         } catch (error) {
-            console.error('Dashboard data fetch error:', error);
             return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch data');
         }
     }
@@ -232,7 +227,7 @@ export const registerUser = createAsyncThunk(
                 args: [userAddress, tetherWave.address]
             }) as bigint;
 
-            const registrationCost = BigInt(11 * 10 ** 18); // 11 USDT
+            const registrationCost = BigInt(11 * 10 ** 18);
 
             // Approve if needed
             if (currentAllowance < registrationCost) {
@@ -246,8 +241,7 @@ export const registerUser = createAsyncThunk(
             await dispatch(fetchDashboardData(userAddress)).unwrap();
             return userAddress;
         } catch (error) {
-            console.error('Registration error:', error);
-            throw new Error(error instanceof Error ? error.message : 'Registration failed');
+            throw error instanceof Error ? error : new Error('Registration failed');
         }
     }
 );
@@ -282,8 +276,7 @@ export const upgradeUser = createAsyncThunk(
             await dispatch(fetchDashboardData(userAddress)).unwrap();
             return userAddress;
         } catch (error) {
-            console.error('Upgrade error in slice:', error);
-            throw error; // Just rethrow without wrapping
+            throw error instanceof Error ? error : new Error('Upgrade failed');
         }
     }
 );

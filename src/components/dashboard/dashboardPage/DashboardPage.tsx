@@ -35,7 +35,7 @@ const DashboardPage = memo(() => {
 
   const { address } = useAccount();
 
-  const { data: usdtBalance } = useBalance({
+  const { data: usdtBalance, refetch: refetchBalance } = useBalance({
     address,
     token: '0xe6Ad72C499ce626b10De645E25BbAb40C5A34C9f',
   });
@@ -57,14 +57,55 @@ const DashboardPage = memo(() => {
     }
 
     try {
+      // Show initial registration toast
+      const loadingToast = toast.loading('Registration Started', {
+        position: 'top-center'
+      });
+
       await dispatch(registerUser({ 
         referrerAddress, 
         balance: balances.usdt,
         userAddress: address 
       })).unwrap();
-      toast.success("Registration successful!");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Registration failed');
+
+      // Dismiss the loading toast
+      toast.dismiss(loadingToast);
+
+      // Show processing toast
+      const processingToast = toast.loading('Registration is in processing...', {
+        position: 'top-center'
+      });
+
+      // Wait for transaction confirmation
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
+      // Dismiss the processing toast
+      toast.dismiss(processingToast);
+
+      // Show success toast
+      toast.success("Registration successful!", {
+        duration: 5000,
+        position: 'top-center',
+        style: {
+          background: '#DCFCE7',
+          color: '#166534',
+          border: '1px solid #166534'
+        }
+      });
+    } catch (error: unknown) {
+      console.error('Registration error:', error);
+      const errorMessage = error instanceof Error ? error.message : 
+        typeof error === 'object' && error && 'message' in error ? error.message : 
+        'Registration failed';
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: 'top-center',
+        style: {
+          background: '#FEE2E2',
+          color: '#DC2626',
+          border: '1px solid #DC2626'
+        }
+      });
     }
   }, [address, balances.usdt, dispatch]);
 
@@ -72,7 +113,6 @@ const DashboardPage = memo(() => {
     if (!address) return;
 
     try {
-        // Show initial toast when upgrade starts
         const loadingToast = toast.loading('Upgrade Started', {
             position: 'top-center'
         });
@@ -83,21 +123,18 @@ const DashboardPage = memo(() => {
             userAddress: address
         })).unwrap();
 
-        // Dismiss the loading toast
         toast.dismiss(loadingToast);
 
-        // Show processing toast
         const processingToast = toast.loading('Upgrade level is in processing...', {
             position: 'top-center'
         });
 
-        // Wait for transaction confirmation (you might need to adjust this timing)
         await new Promise(resolve => setTimeout(resolve, 5000));
-
-        // Dismiss the processing toast
+        
+        // Refresh balance after transaction
+        await refetchBalance();
+        
         toast.dismiss(processingToast);
-
-        // Show success toast
         toast.success(`Successfully upgraded to Level ${targetLevel}!`, {
             duration: 5000,
             position: 'top-center',
@@ -122,7 +159,7 @@ const DashboardPage = memo(() => {
             }
         });
     }
-  }, [address, balances.usdt, dispatch]);
+  }, [address, balances.usdt, dispatch, refetchBalance]);
 
   const levelIncomes = levelIncomesData.map(val => BigInt(val));
 
