@@ -34,6 +34,7 @@ export const contractUtils = {
                 directCommissionEarned: stats[3].toString(),
                 levelIncomeEarned: stats[4].toString(),
                 timestamp: Number(stats[5]),
+                totalTeamSize: Number(stats[6] || 0)
             };
         } catch {
             return null;

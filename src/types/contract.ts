@@ -13,6 +13,7 @@ export interface UserStats {
     directCommissionEarned: string;
     levelIncomeEarned: string;
     timestamp: number;
+    totalTeamSize: number;
 }
 
 export interface RecentIncomeEvents {

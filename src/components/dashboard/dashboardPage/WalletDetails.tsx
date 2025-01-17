@@ -2,11 +2,10 @@ import React, { useState } from "react";
 import { Wallet, Copy, Link2, FileInput, CircleDollarSign, Flame } from "lucide-react";
 import { truncateAddress } from "@/lib/utils/format";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useBalance } from "wagmi";
 
 interface WalletDetailsProps {
   address: string | undefined;
-  usdtBalance: string | null;
+  usdtBalance: string;
   referralCode: string | null;
 }
 
@@ -16,15 +15,6 @@ const WalletDetails = ({
   referralCode,
 }: WalletDetailsProps) => {
   const [isCopied, setIsCopied] = useState(false);
-
-  const { data: tokenBalance } = useBalance({
-    address: address as `0x${string}`,
-    token: '0xe6Ad72C499ce626b10De645E25BbAb40C5A34C9f', // USDT contract address
-  });
-
-  const formattedBalance = tokenBalance ? 
-    Number.parseFloat(tokenBalance.formatted).toFixed(2) : 
-    '0.00';
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -36,8 +26,7 @@ const WalletDetails = ({
     }
   };
   return (
-    <section className="relative p-4 rounded-lg drop-shadow-lg shadow bg-light-gradient dark:bg-dark-gradient">
-      <div>
+    <section className="relative p-4 rounded-lg drop-shadow-lg shadow bg-gradient">
         <div className="flex items-center space-x-2 text-lg font-bold">
           <Wallet className="h-5 w-5" />
           <span>Wallet Details</span>
@@ -89,7 +78,7 @@ const WalletDetails = ({
           <div className="flex items-center space-x-2 px-4 py-4 drop-shadow-lg shadow-inner rounded-md bg-white/40 dark:bg-white/5 backdrop-blur-lg">
             <CircleDollarSign className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
             <span className="text-sm font-medium">USDT Balance:</span>
-            <span className="font-bold">{`${formattedBalance} USDT`}</span>
+            <span className="font-bold">{`${usdtBalance} USDT`}</span>
           </div>
           <div className="flex items-center space-x-2 px-4 py-3 drop-shadow-lg shadow-inner rounded-md bg-white/40 dark:bg-white/5 backdrop-blur-lg">
             <Link2 className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
@@ -122,7 +111,6 @@ const WalletDetails = ({
             </div>
           </div>
         </div>
-      </div>
     </section>
   );
 };

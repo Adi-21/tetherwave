@@ -40,9 +40,6 @@ const TierCard = memo(({
         }
     }), [tier, royaltyData, index]);
 
-    console.log(cardData);
-    console.log(royaltyData);
-
     // Auto-register when qualified (once per 24 hours)
     useEffect(() => {
         const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds

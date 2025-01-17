@@ -151,7 +151,8 @@ export const fetchDashboardData = createAsyncThunk(
                 totalEarnings: totalEarnings.toString(),
                 directCommissionEarned: directCommissionEarned.toString(),
                 levelIncomeEarned: levelIncomeEarned.toString(),
-                timestamp: Number(timestamp)
+                timestamp: Number(timestamp),
+                totalTeamSize: 0
             };
 
             const data = {
