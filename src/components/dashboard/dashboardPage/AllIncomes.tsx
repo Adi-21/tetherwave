@@ -54,6 +54,7 @@ const AllIncomes = memo(({
             <Skeleton className="h-24 w-full" />
             <Skeleton className="h-24 w-full" />
             <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
           </>
         ) : (
           <>
@@ -84,6 +85,11 @@ const AllIncomes = memo(({
             <IncomeCard 
               title="Total Team Size" 
               value={totalTeamSize?.toString() || "0"} 
+            />
+            <IncomeCard 
+              title="Magic Income" 
+              value={userStats?.magicIncome ? formatBigIntToUSDT(BigInt(userStats.magicIncome)) : "0"} 
+              isAmount 
             />
           </>
         )}

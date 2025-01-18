@@ -41,7 +41,7 @@ const DashboardPage = memo(() => {
           itemsPerPage: 5
         }))
       ]).catch((error) => {
-        console.error('Error fetching data:', error);
+        throw new Error('Error fetching data:', error);
       });
     }
   }, [dispatch, address]);
@@ -93,7 +93,6 @@ const DashboardPage = memo(() => {
         }
       });
     } catch (error: unknown) {
-      console.error('Registration error:', error);
       const errorMessage = error instanceof Error ? error.message :
         typeof error === 'object' && error && 'message' in error ? String(error.message) :
           'Registration failed';
@@ -148,7 +147,6 @@ const DashboardPage = memo(() => {
         }
       });
     } catch (error: unknown) {
-      console.error('Upgrade error:', error);
       toast.dismiss();
 
       const errorMessage = error instanceof Error ? error.message :
@@ -227,7 +225,8 @@ const DashboardPage = memo(() => {
           directReferrals: allIncomes.data.directReferrals,
           currentLevel: profile.data.currentLevel,
           timestamp: Math.floor(Date.now() / 1000),
-          totalTeamSize: allIncomes.data.totalTeamSize
+          totalTeamSize: allIncomes.data.totalTeamSize,
+          magicIncome: allIncomes.data.magicIncome
         }}
         upgradeReferralIncome={BigInt(allIncomes.data.upgradeReferralIncome)}
         totalTeamSize={allIncomes.data.totalTeamSize}
@@ -248,7 +247,8 @@ const DashboardPage = memo(() => {
           directReferrals: allIncomes.data.directReferrals,
           currentLevel: profile.data.currentLevel,
           timestamp: Math.floor(Date.now() / 1000),
-          totalTeamSize: allIncomes.data.totalTeamSize
+          totalTeamSize: allIncomes.data.totalTeamSize,
+          magicIncome: allIncomes.data.magicIncome
         }}
         levelIncomes={rankIncome.data.levelIncomes.map(val =>
           typeof val === 'string' ? BigInt(val.replace(/,/g, '')) : BigInt(0)

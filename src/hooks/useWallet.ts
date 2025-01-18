@@ -31,8 +31,7 @@ export function useWallet() {
         try {
             const stats = await getUserStats()
             setIsRegistered((stats?.currentLevel ?? 0) > 0)
-        } catch (error) {
-            console.error('Error checking registration:', error)
+        } catch {
             setIsRegistered(false)
         } finally {
             setIsLoading(false)
