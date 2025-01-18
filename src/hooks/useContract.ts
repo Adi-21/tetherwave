@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 import { getContracts } from '../lib/constants/contracts'
 import { useAccount } from 'wagmi'
 import { publicClient } from '../lib/constants/contracts'
-import type { UserStats, ReferralData, Sponsor, LevelActivatedCount } from '@/types/contract'
+import type { ReferralData, Sponsor, LevelActivatedCount, UserCompleteStats } from '@/types/contract'
 import type { Address } from 'viem'
 import { createWalletClient } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
@@ -26,7 +26,7 @@ const REGISTRATION_COST = BigInt(11 * 10 ** 18);
 export function useContract() {
     const { address } = useAccount()
 
-    const getUserStats = useCallback(async (): Promise<UserStats | null> => {
+    const getUserStats = useCallback(async (): Promise<UserCompleteStats | null> => {
         if (!address) return null
         try {
             const { tetherWave } = getContracts()
@@ -43,7 +43,7 @@ export function useContract() {
                 directCommissionEarned: stats[3].toString(),
                 levelIncomeEarned: stats[4].toString(),
                 timestamp: Number(stats[5]),
-                totalTeamSize: Number(stats[6] || 0)
+                totalTeamSize: Number(stats[6] || 0),
             }
         } catch {
             return null

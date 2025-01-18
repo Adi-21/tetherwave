@@ -15,6 +15,17 @@ export interface UserStats {
     levelIncomeEarned: string;
     timestamp: number;
     totalTeamSize: number;
+    magicIncome: string;
+}
+
+export interface UserCompleteStats {
+    currentLevel: number;
+    directReferrals: number;
+    totalEarnings: string;
+    directCommissionEarned: string;
+    levelIncomeEarned: string;
+    timestamp: number;
+    totalTeamSize: number;
 }
 
 export interface RecentIncomeEvents {

@@ -30,6 +30,7 @@ export const useDashboardData = () => {
     currentLevel: 0,
     totalEarnings: BigInt(0),
     levelIncomeEarned: BigInt(0),
+    magicIncome: BigInt(0),
     timestamp: Math.floor(Date.now() / 1000)
   }), []);
 

@@ -38,9 +38,13 @@ const TierStats = memo(({ index, royaltyInfo }: TierStatsProps) => {
         daysRemaining: royaltyInfo?.daysRemaining?.[index]
             ? Number(royaltyInfo.daysRemaining[index])
             : '0',
-        nextClaim: royaltyInfo?.nextClaimTime?.[index]
-            ? new Date(Number(royaltyInfo.nextClaimTime[index]) * 1000).toLocaleDateString()
-            : 'N/A'
+            nextClaim: (() => {
+                const timestamp = royaltyInfo?.nextClaimTime?.[index];
+                if (!timestamp || timestamp === '0') return 'N/A';
+                
+                const date = new Date(Number(timestamp) * 1000);
+                return Number.isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString();
+            })()
     }), [royaltyInfo, index]);
 
     return (

@@ -59,7 +59,6 @@ export const fetchRoyaltyData = createAsyncThunk(
     async (address: Address) => {
         try {
             const { royalty, tetherWave } = getContracts();
-            console.log('Fetching royalty data for:', address);
             
             const qualifiedTiers = await royalty.publicClient.readContract({
                 ...royalty,
@@ -102,8 +101,6 @@ export const fetchRoyaltyData = createAsyncThunk(
                 args: [address, BigInt(5)]
             }) as [bigint, bigint, bigint];
 
-            console.log('Raw royalty info:', royaltyInfo);
-
             // Ensure all BigInt values are converted to strings
             const serializedRoyaltyInfo = {
                 achievedTiers: royaltyInfo[0],
@@ -129,9 +126,8 @@ export const fetchRoyaltyData = createAsyncThunk(
                 tierAchieversCount: achieversCount.map(count => Number(count.toString())),
                 legProgress
             };
-        } catch (error) {
-            console.error('Error fetching royalty data:', error);
-            throw error;
+        } catch {
+            throw new Error('Error fetching royalty data:');
         }
     }
 );

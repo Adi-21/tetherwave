@@ -1,7 +1,7 @@
 import { privateKeyToAccount } from 'viem/accounts';
 import { getContracts, opBNBTestnet } from '../constants/contracts';
 import { publicClient } from '../constants/contracts';
-import type { UserStats, ReferralData, Sponsor, RecentIncomeEvents, DownlineData, RoyaltyInfo, LevelInfo, DownlineByDepthPaginated, DirectReferralDataPaginated, LevelActivatedCount, UserRoyaltyInfo } from '@/types/contract';
+import type { ReferralData, Sponsor, RecentIncomeEvents, DownlineData, RoyaltyInfo, LevelInfo, DownlineByDepthPaginated, DirectReferralDataPaginated, LevelActivatedCount, UserRoyaltyInfo, UserCompleteStats } from '@/types/contract';
 import { createWalletClient, http, type Address } from 'viem';
 
 const REGISTRATION_COST = BigInt(11 * 10 ** 18);
@@ -18,7 +18,7 @@ const LEVEL_COSTS = {
 } as const;
 
 export const contractUtils = {
-    async getUserStats(address: Address): Promise<UserStats | null> {
+    async getUserStats(address: Address): Promise<UserCompleteStats | null> {
         try {
             const { tetherWave } = getContracts();
             const stats = await tetherWave.publicClient.readContract({

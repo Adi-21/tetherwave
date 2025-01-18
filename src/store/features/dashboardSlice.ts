@@ -67,6 +67,7 @@ interface AllIncomesState {
         directReferrals: number;
         upgradeReferralIncome: string;
         totalTeamSize: number;
+        magicIncome: string;
     };
 }
 
@@ -144,7 +145,8 @@ const initialState: DashboardState = {
             levelIncome: '0',
             directReferrals: 0,
             upgradeReferralIncome: '0',
-            totalTeamSize: 0
+            totalTeamSize: 0,
+            magicIncome: '0'
         }
     },
     rankIncome: {
@@ -328,9 +330,7 @@ export const upgrade = createAsyncThunk(
             await tetherWave.publicClient.waitForTransactionReceipt({ hash });
 
             return { targetLevel, transactionHash: hash };
-        } catch (error: unknown) {
-            console.error('Contract error:', error);
-            
+        } catch (error: unknown) {   
             if (typeof error === 'object' && error !== null) {
                 const err = error as ContractError;
                 if (err.message?.includes('0xfb8f41b2')) {
@@ -356,33 +356,20 @@ export const fetchAllIncomesData = createAsyncThunk(
         try {
             const { tetherWave } = getContracts();
 
-            // Fetch user stats
             const stats = await tetherWave.publicClient.readContract({
                 ...tetherWave,
-                functionName: 'getUserStats',
+                functionName: 'getUserCompleteStats',
                 args: [address]
-            }) as [number, number, bigint, bigint, bigint, number, boolean];
-
-            // Fetch team size
-            const teamSize = await tetherWave.publicClient.readContract({
-                ...tetherWave,
-                functionName: 'getTeamSizes',
-                args: [address]
-            }) as number[];
-
-            const upgradeReferralIncome = await tetherWave.publicClient.readContract({
-                ...tetherWave,
-                functionName: 'getUpgradeReferralIncome',
-                args: [address]
-            }) as bigint;
+            }) as [bigint, bigint, bigint, bigint, number, bigint, number];
 
             const result = {
-                directReferrals: Number(stats[1]),
-                totalIncome: stats[2].toString(),
-                referralIncome: stats[3].toString(),
-                levelIncome: stats[4].toString(),
-                upgradeReferralIncome: upgradeReferralIncome.toString(),
-                totalTeamSize: Number(teamSize[0])
+                totalIncome: stats[0].toString(),
+                referralIncome: stats[1].toString(),
+                levelIncome: stats[2].toString(),
+                upgradeReferralIncome: stats[3].toString(),
+                totalTeamSize: Number(stats[4]),
+                magicIncome: stats[5].toString(),
+                directReferrals: Number(stats[6])
             };
             return result;
         } catch {
