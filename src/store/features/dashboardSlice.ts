@@ -96,6 +96,7 @@ interface RecentIncomeState {
         itemsPerPage: number;
         totalPages: number;
     };
+    filterTypes: number[];
 }
 
 // Main dashboard state
@@ -168,20 +169,22 @@ const initialState: DashboardState = {
         }
     },
     recentIncome: {
-        isLoading: true,
+        isLoading: false,
         error: null,
         data: {
             userAddresses: [],
             levelNumbers: [],
             amounts: [],
             timestamps: [],
+            incomeTypes: [],
             totalCount: 0
         },
         pagination: {
             currentPage: 1,
             itemsPerPage: 5,
             totalPages: 1
-        }
+        },
+        filterTypes: []
     },
     globalError: null,
     isLoading: true,
@@ -446,28 +449,33 @@ export const fetchRecentIncomeData = createAsyncThunk(
     async ({
         address,
         page,
-        itemsPerPage
+        itemsPerPage,
+        filterTypes = []
     }: {
         address: string;
         page: number;
-        itemsPerPage: number
+        itemsPerPage: number;
+        filterTypes: number[];
     }, { rejectWithValue }) => {
         try {
             const { tetherWave } = getContracts();
             const startIndex = (page - 1) * itemsPerPage;
 
-            const recentIncomes = await tetherWave.publicClient.readContract({
+            const data = await tetherWave.publicClient.readContract({
                 ...tetherWave,
                 functionName: 'getRecentIncomeEventsPaginated',
-                args: [address as `0x${string}`, BigInt(startIndex), BigInt(itemsPerPage)]
-            }) as [string[], number[], bigint[], number[], bigint];
+                args: [address as `0x${string}`, BigInt(startIndex), BigInt(itemsPerPage), filterTypes]
+            }) as [string[], number[], bigint[], number[], number[], bigint];
+
+            const [userAddresses, levelNumbers, amounts, timestamps, incomeTypes, totalCount] = data;
 
             return {
-                userAddresses: recentIncomes[0],
-                levelNumbers: recentIncomes[1],
-                amounts: recentIncomes[2].map(amount => amount.toString()),
-                timestamps: recentIncomes[3],
-                totalCount: Number(recentIncomes[4])
+                userAddresses,
+                levelNumbers,
+                amounts: amounts.map(amount => amount.toString()),
+                timestamps,
+                incomeTypes: incomeTypes.map(Number),
+                totalCount: Number(totalCount)
             };
         } catch {
             return rejectWithValue('Failed to fetch recent income data');
@@ -566,9 +574,13 @@ const dashboardSlice = createSlice({
         resetUpgradeError: (state) => {
             state.packages.error = null;
         },
-        setRecentIncomePage: (state, action: PayloadAction<number>) => {
+        setCurrentPage: (state, action: PayloadAction<number>) => {
             state.recentIncome.pagination.currentPage = action.payload;
+        },
+        setRecentIncomeFilterTypes: (state, action: PayloadAction<number[]>) => {
+            state.recentIncome.filterTypes = action.payload;
         }
+
     },
     extraReducers: (builder) => {
         builder
@@ -642,6 +654,7 @@ const dashboardSlice = createSlice({
                 state.recentIncome.pagination.totalPages = Math.ceil(
                     action.payload.totalCount / state.recentIncome.pagination.itemsPerPage
                 );
+                state.recentIncome.filterTypes = action.payload.incomeTypes;
             })
             .addCase(fetchRecentIncomeData.rejected, (state, action) => {
                 state.recentIncome.isLoading = false;
@@ -703,7 +716,8 @@ export const {
     setReferrerAddress,
     resetRegistrationError,
     resetUpgradeError,
-    setRecentIncomePage,
+    setCurrentPage,
+    setRecentIncomeFilterTypes,
     setLoading
 } = dashboardSlice.actions;
 export default dashboardSlice.reducer;

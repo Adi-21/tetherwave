@@ -7,7 +7,7 @@ import { fetchDownlineData, setSelectedLevel, setCurrentPage } from "@/store/fea
 import type { AppDispatch, RootState } from "@/store";
 import { FrontendIdDisplay } from "./FrontendIdDisplay";
 import Skeleton from "../common/Skeleton";
-import Pagination from "./dashboardPage/RecentIncome/Pagination";
+import Pagination from "../common/Pagination";
 
 const CommunityPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -39,9 +39,8 @@ const CommunityPage = () => {
                 dispatch(setSelectedLevel(level));
                 dispatch(setCurrentPage(1));
               }}
-              className={`py-2 px-6 rounded bg-gradient-button text-white ${
-                selectedLevel === level ? "opacity-100" : "opacity-50"
-              }`}
+              className={`py-2 px-6 rounded bg-gradient-button text-white ${selectedLevel === level ? "opacity-100" : "opacity-50"
+                }`}
             >
               {level}
             </button>
@@ -53,7 +52,7 @@ const CommunityPage = () => {
         {isLoading ? (
           <div className="flex flex-col justify-between items-center gap-4 p-4 rounded-lg bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md">
             {[...Array(4)].map((_, index) => (
-              <div key={index} className="h-10 lg:h-12 w-full">
+              <div key={`${index + 1}`} className="h-10 lg:h-12 w-full">
                 <div className="w-full h-full">
                   <Skeleton className="h-full w-full" />
                 </div>
@@ -78,7 +77,9 @@ const CommunityPage = () => {
                     key={`${index + 1}`}
                     className="bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md"
                   >
-                    <td className="py-2 px-8 text-left">{index + 1}</td>
+                    <td className="py-2 px-8 text-left">
+                      {(currentPage - 1) * itemsPerPage + index + 1}
+                    </td>
                     <td className="p-4 text-left">
                       <FrontendIdDisplay
                         address={address}
@@ -112,12 +113,12 @@ const CommunityPage = () => {
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
-                  onPageChange={setCurrentPage}
+                  onPageChange={(page) => dispatch(setCurrentPage(page))}
                   startEntry={startEntry}
                   endEntry={endEntry}
                   totalCount={downlineData.totalCount}
                 />
-               </div>
+              </div>
             )}
 
           </div>

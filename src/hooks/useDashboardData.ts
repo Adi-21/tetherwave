@@ -18,6 +18,7 @@ export const useDashboardData = () => {
   // Hardcoded data for now
   const recentIncomesData = useMemo((): RecentIncomeEvents => ({
     userAddresses: [],
+    incomeTypes: [],
     levelNumbers: [],
     amounts: [],
     timestamps: [],
