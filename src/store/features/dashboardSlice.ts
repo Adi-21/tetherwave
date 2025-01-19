@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import type { RecentIncomeEvents } from '@/types/contract';
-import { getContracts } from '@/lib/constants/contracts';
+import { getContracts, publicClient } from '@/lib/constants/contracts';
 import { LEVELS } from '@/lib/constants';
 import { dashboardAPI } from '@/services/api';
 
@@ -299,22 +299,14 @@ export const register = createAsyncThunk(
                 throw new Error(`Insufficient USDT balance for registration. You need 50 USDT but have ${balance} USDT.`);
             }
 
-            const approveAmount = BigInt(10000 * 10 ** 18);
-            const allowance = await usdt.publicClient.readContract({
+            const approveAmount = BigInt(11 * 10 ** 18);
+            const approveHash = await usdt.walletClient.writeContract({
                 ...usdt,
-                functionName: 'allowance',
-                args: [userAddress as `0x${string}`, tetherWave.address]
-            }) as bigint;
-
-            if (allowance < approveAmount) {
-                const approveHash = await usdt.walletClient.writeContract({
-                    ...usdt,
-                    functionName: 'approve',
-                    args: [tetherWave.address, approveAmount],
-                    account: userAddress as `0x${string}`
-                });
-                await tetherWave.publicClient.waitForTransactionReceipt({ hash: approveHash });
-            }
+                functionName: 'approve',
+                args: [tetherWave.address, approveAmount],
+                account: userAddress as `0x${string}`
+            });
+            await publicClient.waitForTransactionReceipt({ hash: approveHash })
 
             const { request } = await tetherWave.publicClient.simulateContract({
                 ...tetherWave,
@@ -334,7 +326,7 @@ export const register = createAsyncThunk(
                     localStorage.removeItem("tetherwave_refId");
                     await dispatch(fetchProfileData(userAddress));
                     await dispatch(fetchPackagesData(userAddress));
-                    
+
                     return { success: true, transactionHash: hash };
                 } catch {
                     throw new Error('Backend registration failed');
@@ -380,23 +372,14 @@ export const upgrade = createAsyncThunk(
                 return rejectWithValue(`❌ Insufficient USDT Balance!\n\nRequired: ${formattedRequired} USDT\nYour Balance: ${formattedBalance} USDT`);
             }
 
-            // Check allowance
-            const approveAmount = BigInt(10000 * 10 ** 18);
-            const allowance = await usdt.publicClient.readContract({
+            const approveAmount = BigInt(requiredAmount) * BigInt(10 ** 18)
+            const approveHash = await usdt.walletClient.writeContract({
                 ...usdt,
-                functionName: 'allowance',
-                args: [userAddress as `0x${string}`, tetherWave.address]
-            }) as bigint;
-
-            if (allowance < approveAmount) {
-                const approveHash = await usdt.walletClient.writeContract({
-                    ...usdt,
-                    functionName: 'approve',
-                    args: [tetherWave.address, approveAmount],
-                    account: userAddress as `0x${string}`
-                });
-                await tetherWave.publicClient.waitForTransactionReceipt({ hash: approveHash });
-            }
+                functionName: 'approve',
+                args: [tetherWave.address, approveAmount],
+                account: userAddress as `0x${string}`
+            });
+            await publicClient.waitForTransactionReceipt({ hash: approveHash })
 
             const { request } = await tetherWave.publicClient.simulateContract({
                 ...tetherWave,

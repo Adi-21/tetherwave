@@ -16,7 +16,8 @@ export function FrontendIdDisplay({
     }
 
     if (!isRegistered) {
-      setDisplayId("ID not found");
+      setDisplayId(`${address.slice(0, 6)}...${address.slice(-4)}`);
+      // setDisplayId("ID not found");
       return;
     }
 
@@ -24,13 +25,15 @@ export function FrontendIdDisplay({
 
     const fetchId = async () => {
       try {
-        const id = await getFrontendId(address);
+        await getFrontendId(address);
         if (isMounted) {
-          setDisplayId(id ? id : "ID not found");
+          // setDisplayId(id ? id : "ID not found");
+          setDisplayId(`${address.slice(0, 6)}...${address.slice(-4)}`)
         }
       } catch {
         if (isMounted) {
-          setDisplayId("ID not found");
+          // setDisplayId("ID not found");
+          setDisplayId(`${address.slice(0, 6)}...${address.slice(-4)}`)
         }
       }
     };

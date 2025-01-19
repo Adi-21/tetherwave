@@ -48,14 +48,14 @@ const DashboardHeader = () => {
               href="/dashboard"
               className="flex w-full lg:w-auto pt-5 lg:pt-0"
             >
-              <div className="flex items-center justify-center gap-1 overflow-hidden">
+              <div className="w-20 lg:w-28">
                 <Image
                   src="/images/logo.png"
                   alt="Logo"
                   width={400}
                   height={400}
                   quality={100}
-                  className=" w-28 h-12"
+                  className="object-contain w-full h-full"
                 />
               </div>
             </Link>

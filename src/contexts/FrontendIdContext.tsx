@@ -24,7 +24,7 @@ export function FrontendIdProvider({ children }: { children: React.ReactNode }) 
                 }));
                 return response[lowerAddress];
             }
-            throw new Error('ID not found');
+            return `${address.slice(0, 6)}...${address.slice(-4)}`;
         } catch {
             throw new Error('Error fetching frontend ID');
         }
