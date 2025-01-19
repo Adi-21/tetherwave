@@ -18,7 +18,7 @@ const Pagination = memo(({
     endEntry,
     totalCount,
 }: PaginationProps) => (
-    <div className="flex justify-between items-center mt-4 px-4">
+    <div className="flex justify-between items-center mt-2 px-4">
         <div className="text-sm">
             Showing {startEntry}-{endEntry} of {totalCount}
         </div>

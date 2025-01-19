@@ -100,8 +100,8 @@ StatRow.displayName = 'StatRow';
 
 const StatBox = memo(({ title, value, alignRight }: StatBoxProps) => (
     <div className={`flex flex-col justify-between ${alignRight ? 'items-end' : 'items-center'}`}>
-        <h3 className="text-lg font-semibold">{title}</h3>
-        <p className="text-2xl font-bold text-green-600">{value}</p>
+        <h3 className="lg:text-lg font-semibold">{title}</h3>
+        <p className="text-lg lg:text-2xl font-bold text-green-600">{value}</p>
     </div>
 ));
 
