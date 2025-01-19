@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 interface WalletDetailsProps {
   address: string;
   referralCode: string;
+  userId?: string;
 }
 
 interface WalletItemProps {
@@ -32,13 +33,23 @@ const WalletItem = memo(({ icon: Icon, label, value, copyable, onCopy }: WalletI
 
 WalletItem.displayName = 'WalletItem';
 
-const WalletDetails = memo(({ address, referralCode }: WalletDetailsProps) => {
+const WalletDetails = memo(({ address, userId }: WalletDetailsProps) => {
   const { formatted: usdtBalance, isLoading } = useUSDTBalance(address as `0x${string}`);
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  
+  // Only create referral URL if userId exists
+  const fullReferralUrl = userId 
+    ? `${baseUrl}/dashboard/?ref=${userId}`
+    : "Referral link will be available after registration";
 
   const handleCopy = useCallback(async (text: string) => {
+    if (!userId) {
+      toast.error('Please register first to get your referral link');
+      return;
+    }
     await navigator.clipboard.writeText(text);
     toast.success('Copied to clipboard!');
-  }, []);
+  }, [userId]);
 
   return (
     <section className="relative p-4 rounded-lg bg-white/40 dark:bg-white/5 backdrop-blur-lg">
@@ -61,10 +72,10 @@ const WalletDetails = memo(({ address, referralCode }: WalletDetailsProps) => {
         />
         <WalletItem
           icon={Flame}
-          label="Referral Code"
-          value={truncateAddress(referralCode || '0x')}
-          copyable
-          onCopy={() => handleCopy(referralCode || '')}
+          label="Referral Link"
+          value={userId ? truncateAddress(fullReferralUrl) : fullReferralUrl}
+          copyable={!!userId}
+          onCopy={() => handleCopy(fullReferralUrl)}
         />
       </div>
     </section>

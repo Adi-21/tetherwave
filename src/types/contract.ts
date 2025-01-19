@@ -129,6 +129,9 @@ export interface UserProfileData {
     levelIncomes: bigint[];
     frontend_id: string;
     isLoading: boolean;
+    userid?: string;
+    created_at?: string;
+    total_referrals?: number;
 }
 
 export interface RecentIncomeProps {
