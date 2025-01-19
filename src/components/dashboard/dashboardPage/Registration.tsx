@@ -1,4 +1,7 @@
-import { memo } from 'react';
+'use client';
+
+import { dashboardAPI } from '@/services/api';
+import { memo, useEffect } from 'react';
 import { LuKey } from "react-icons/lu";
 
 interface RegistrationProps {
@@ -15,6 +18,23 @@ const Registration = memo(({
   setReferrerAddress, 
   handleRegister 
 }: RegistrationProps) => {
+  useEffect(() => {
+    const storedRefId = localStorage.getItem("tetherwave_refId");
+    if (storedRefId && !referrerAddress.walletAddress) {
+        dashboardAPI.getReferralInfo(storedRefId)
+            .then(data => {
+                if (data.referring_wallet) {
+                    setReferrerAddress({
+                        userId: storedRefId,
+                        walletAddress: data.referring_wallet
+                    });
+                }
+            })
+            .catch((error: unknown) => {
+                throw new Error('Failed to fetch referrer info:', error as Error);
+            });
+    }
+  }, [referrerAddress.walletAddress, setReferrerAddress]);
   return (
     <div className="mt-4 lg:mt-8 w-full">
       <div className="p-4 lg:p-6 rounded-lg drop-shadow-lg shadow bg-gradient">

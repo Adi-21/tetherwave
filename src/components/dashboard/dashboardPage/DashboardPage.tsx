@@ -29,7 +29,11 @@ const DashboardPage = memo(() => {
 
   useEffect(() => {
     if (address) {
-      dispatch(initializeReferral());
+      dispatch(initializeReferral())
+        .then(() => dispatch(fetchReferrerData(address)))
+        .catch((error: unknown) => {
+          throw new Error('Failed to initialize referral:', error as Error);
+        });
     }
   }, [address, dispatch]);
 
@@ -38,7 +42,6 @@ const DashboardPage = memo(() => {
       Promise.all([
         dispatch(fetchProfileData(address)),
         dispatch(fetchWalletData(address)),
-        dispatch(fetchReferrerData(address)),
         dispatch(fetchAllIncomesData(address)),
         dispatch(fetchRankIncomeData(address)),
         dispatch(fetchPackagesData(address)),
