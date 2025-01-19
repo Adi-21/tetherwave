@@ -26,7 +26,6 @@ export const contractUtils = {
                 functionName: 'getUserStats',
                 args: [address]
             }) as [number, number, bigint, bigint, bigint, number, bigint];
-            console.log('User Stats:', stats);
 
             return {
                 currentLevel: Number(stats[0]),
@@ -102,7 +101,6 @@ export const contractUtils = {
             const currentBalance = BigInt(Number.parseFloat(currentUsdtBalance) * 10 ** 18);
             if (currentBalance < requiredAmount) {
                 const errorMessage = `Insufficient USDT balance for upgrading to level ${targetLevel}. You need ${Number(requiredAmount) / 10 ** 18} USDT but have ${currentUsdtBalance} USDT`;
-                console.error('Balance check failed:', errorMessage);
                 throw new Error(errorMessage);
             }
 
@@ -113,9 +111,8 @@ export const contractUtils = {
                 account: address
             });
             await publicClient.waitForTransactionReceipt({ hash: upgradeHash });
-        } catch (error) {
-            console.error('Upgrade error in contractUtils:', error);
-            throw error; // Just rethrow without wrapping
+        } catch {
+            throw new Error('Failed to upgrade');
         }
     },
 
@@ -419,16 +416,8 @@ export const contractUtils = {
                 totalEarned: result[4].map(earned => earned.toString()),
                 qualifiedNewTiers: result[5]
             };
-        } catch (error) {
-            console.error('Error fetching royalty info:', error);
-            return {
-                achievedTiers: [],
-                paidDays: [],
-                daysRemaining: [],
-                nextClaimTime: [],
-                totalEarned: [],
-                qualifiedNewTiers: []
-            };
+        } catch {
+            throw new Error('Failed to fetch royalty info');
         }
     },
 
@@ -528,9 +517,8 @@ export const contractUtils = {
                 directSponsor: [matrixPosition[0]],
                 matrixSponsor: [matrixPosition[1]]
             }
-        } catch (error) {
-            console.error('Failed to fetch sponsors:', error)
-            return null
+        } catch {
+            throw new Error('Failed to fetch sponsors');
         }
     },
 

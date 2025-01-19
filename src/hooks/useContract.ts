@@ -118,7 +118,6 @@ export function useContract() {
             const { tetherWave, usdt } = getContracts();
             
             const currentBalance = BigInt(Number.parseFloat(currentUsdtBalance) * 10 ** 18);
-            console.log("Current balance:", currentBalance);
             
             // Check if balance is sufficient
             if (currentBalance < REGISTRATION_COST) {
@@ -304,9 +303,8 @@ export function useContract() {
                 totalEarned: result[4],
                 qualifiedNewTiers: result[5]
             };
-        } catch (error) {
-            console.error('Error fetching royalty info:', error);
-            return null;
+        } catch {
+            throw new Error('Error fetching royalty info');
         }
     }, []);
 
@@ -426,9 +424,8 @@ export function useContract() {
                 directSponsor: [matrixPosition[0]],
                 matrixSponsor: [matrixPosition[1]]
             }
-        } catch (error) {
-            console.error('Failed to fetch sponsors:', error)
-            return null
+        } catch {
+            throw new Error('Failed to fetch sponsors');
         }
     }, [address])
 

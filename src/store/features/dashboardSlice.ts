@@ -255,12 +255,10 @@ export const fetchProfileData = createAsyncThunk(
             }) as [string, string];
 
             const currentLevel = Number(userStats[0]);
-            const levelName = LEVELS[currentLevel]?.name || 'Not Registered';
+            const levelName = LEVELS[currentLevel - 1]?.name || 'Not Registered';
 
             await new Promise(resolve => setTimeout(resolve, 5000));
             const data = await dashboardAPI.getUserProfile(address);
-
-            console.log(data);
 
             return {
                 currentLevel,
@@ -331,16 +329,14 @@ export const register = createAsyncThunk(
             if (receipt.status === 'success') {
                 try {
                     await new Promise(resolve => setTimeout(resolve, 10000));
-                    const response = await dashboardAPI.registerWithReferral(userAddress, referrerAddress.userId);
-                    console.log('Backend registration success:', response);
+                    await dashboardAPI.registerWithReferral(userAddress, referrerAddress.userId);
 
                     localStorage.removeItem("tetherwave_refId");
                     await dispatch(fetchProfileData(userAddress));
                     await dispatch(fetchPackagesData(userAddress));
                     
                     return { success: true, transactionHash: hash };
-                } catch (error) {
-                    console.error('Backend registration error:', error);
+                } catch {
                     throw new Error('Backend registration failed');
                 }
             }

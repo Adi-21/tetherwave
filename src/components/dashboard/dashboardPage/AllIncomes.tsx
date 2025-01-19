@@ -69,8 +69,18 @@ const AllIncomes = memo(({
               isAmount 
             />
             <IncomeCard 
+              title="Upgrade Referral Income" 
+              value={upgradeReferralIncome ? formatBigIntToUSDT(upgradeReferralIncome) : "0"} 
+              isAmount 
+            />
+            <IncomeCard 
               title="Level Income" 
               value={userStats?.levelIncomeEarned ? formatBigIntToUSDT(BigInt(userStats.levelIncomeEarned)) : "0"} 
+              isAmount 
+            />
+            <IncomeCard 
+              title="Magic Income" 
+              value={userStats?.magicIncome ? formatBigIntToUSDT(BigInt(userStats.magicIncome)) : "0"} 
               isAmount 
             />
             <IncomeCard 
@@ -78,18 +88,8 @@ const AllIncomes = memo(({
               value={userStats?.directReferrals?.toString() || "0"} 
             />
             <IncomeCard 
-              title="Upgrade Referral Income" 
-              value={upgradeReferralIncome ? formatBigIntToUSDT(upgradeReferralIncome) : "0"} 
-              isAmount 
-            />
-            <IncomeCard 
               title="Total Team Size" 
               value={totalTeamSize?.toString() || "0"} 
-            />
-            <IncomeCard 
-              title="Magic Income" 
-              value={userStats?.magicIncome ? formatBigIntToUSDT(BigInt(userStats.magicIncome)) : "0"} 
-              isAmount 
             />
           </>
         )}
