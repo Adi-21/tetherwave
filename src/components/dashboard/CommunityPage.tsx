@@ -14,7 +14,7 @@ const CommunityPage = () => {
   const { downlineData, selectedLevel, currentPage, isLoading } = useSelector(
     (state: RootState) => state.community
   );
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
 
   useEffect(() => {
     if (address) {
@@ -77,10 +77,10 @@ const CommunityPage = () => {
                     />
                   </td>
                   <td className="py-2 px-16 text-left">
-                    {downlineData.directReferralsCount[0]}
+                    {downlineData.directReferralsCount[index]}
                   </td>
                   <td className="py-2 px-16 text-left">
-                    {downlineData.currentLevels[0]}
+                    {downlineData.currentLevels[index]}
                   </td>
                 </tr>
               ))}
@@ -104,6 +104,9 @@ const CommunityPage = () => {
                 type="button"
                 onClick={() => dispatch(setCurrentPage(currentPage - 1))}
                 disabled={currentPage === 1}
+                className={`px-3 py-1 rounded drop-shadow shadow ${
+                  currentPage === 1 ? "bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-500 cursor-not-allowed" : "bg-gray-200 text-gray-500 dark:bg-gray-600 dark:text-gray-300 hover:bg-opacity-80 dark:hover:bg-opacity-80"
+                }`}
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
