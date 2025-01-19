@@ -15,7 +15,7 @@ const FeaturesGrid = () => {
               bg: "bg-[radial-gradient(129.96%_104.38%_at_43.18%_37.89%,_#d16fff33_0,_#fc6fff07_100%)]",
             },
             {
-              title: "Network Growth Bonus",
+              title: "Network Growth",
               description:
                 "As your network grows deeper, earn additional rewards from indirect referrals. Expand your earning potential through multiple levels.",
               stats: "12,547 Active Networks",
