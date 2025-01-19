@@ -1,48 +1,37 @@
 "use client";
 
 import Container from "../common/Container";
+import { GoDot } from "react-icons/go";
 
 export function SplitViewSection() {
   return (
     <Container>
       <div className="relative w-full">
         <div className="grid lg:grid-cols-2 gap-4 lg:gap-8 border-y w-full border-white border-opacity-20">
-          <div className="lg:sticky lg:top-10 lg:self-start lg:h-[calc(100vh-40px)]">
+          <div className="lg:sticky lg:top-10 lg:self-start lg:h-[calc(125vh-40px)]">
             <div className="lg:pe-12 py-10 lg:py-20">
               <h2 className="text-3xl lg:text-6xl font-bold mb-4 lg:mb-8">
                 Why Choose
                 <br />
-                Tether Ventures?
+                Tether Waves?
               </h2>
               <p className="text-lg lg:text-2xl text-gray-400 mb-6 lg:mb-8">
                 Join the fastest growing referral network and unlock unlimited
                 earning potential.
               </p>
               <div className="space-y-4 lg:space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-[#f3ba2f]/80 flex items-center justify-center">
-                    <span className="text-xl lg:text-2xl font-bold">$</span>
+                {points.map((point, index) => (
+                  <div key={index} className="flex items-center gap-4">
+                    <div className="w-6 h-6 lg:w-6 lg:h-6 rounded-full bg-[#f3ba2f]/80 flex items-center justify-center">
+                      <span className="text-xs lg:text-xs font-bold">
+                        {point.icon}
+                      </span>
+                    </div>
+                    <div className="text-sm lg:text-base font-semibold">
+                      {point.text}
+                    </div>
                   </div>
-                  <div className="text-lg lg:text-xl font-semibold">
-                    Low Entry Barrier - Start with just $11
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-[#f3ba2f]/80 flex items-center justify-center">
-                    <span className="text-xl lg:text-2xl font-bold">3x</span>
-                  </div>
-                  <div className="text-lg lg:text-xl font-semibold">
-                    Triple Referral System
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-[#f3ba2f]/80 flex items-center justify-center">
-                    <span className="text-xl lg:text-2xl font-bold">∞</span>
-                  </div>
-                  <div className="text-lg lg:text-xl font-semibold">
-                    Unlimited Earning Potential
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
@@ -51,20 +40,23 @@ export function SplitViewSection() {
             {sections.map((section, index) => (
               <div key={`${index + 1}`} className="">
                 <div className="space-y-2 lg:space-y-4 mb-6 lg:mb-10">
-                  <h3 className="text-3xl lg:text-4xl font-bold">
-                    {section.title}
-                  </h3>
-                  <p className="text-lg lg:text-xl text-gray-400">
+                  <div className="flex gap-1 items-center">
+                    <GoDot className="text-xl lg:text-2xl" />
+                    <h3 className="text-2xl lg:text-4xl font-bold">
+                      {section.title}
+                    </h3>
+                  </div>
+                  <p className="text-base lg:text-xl text-gray-400">
                     {section.description}
                   </p>
                 </div>
                 <div className="space-y-6 lg:space-y-8">
                   {section.items.map((item, idx) => (
                     <div key={`${idx + 1}`} className="space-y-2 lg:space-y-4">
-                      <div className="text-2xl lg:text-3xl font-semibold">
+                      <div className="text-xl lg:text-3xl font-semibold">
                         {item.heading}
                       </div>
-                      <p className="text-lg lg:text-xl text-gray-400">
+                      <p className="text-base lg:text-xl text-gray-400">
                         {item.content}
                       </p>
                     </div>
@@ -106,17 +98,17 @@ const sections = [
     description: "Multiple ways to earn with our platform",
     items: [
       {
-        heading: "Direct Referral Bonus",
+        heading: "1. Direct Referral Bonus",
         content:
           "Earn $10 instantly for each direct referral who joins with an $11 deposit.",
       },
       {
-        heading: "Network Growth Rewards",
+        heading: "2. Direct Level Upgrade Bonus",
         content:
-          "Earn additional rewards as your network expands through multiple levels.",
+          "Whenever your direct referral upgrades to the next level, you earn 50% of each upgrade package value.",
       },
       {
-        heading: "Performance Bonuses",
+        heading: "3. Fortune Founder Reward",
         content:
           "Unlock special bonuses when your team reaches certain milestones.",
       },
@@ -127,15 +119,29 @@ const sections = [
     description: "Your investment is protected",
     items: [
       {
-        heading: "Smart Contract Security",
+        heading: "1. Smart Contract Security",
         content:
           "All transactions and rewards are secured by blockchain technology.",
       },
       {
-        heading: "Transparent System",
+        heading: "2. Transparent System",
         content:
           "Every transaction and reward distribution is visible on the blockchain.",
       },
     ],
   },
+];
+
+const points = [
+  { icon: "$", text: "Low Entry Barrier - Start with just $11" },
+  { icon: "3x", text: "Triple Referral System" },
+  { icon: "∞", text: "Unlimited Earning Potential" },
+  { icon: "💯", text: "100% Decentralized Crypto Platform" },
+  { icon: "✔️", text: "Safe and Secure" },
+  { icon: "📈", text: "Stable Career-Building Forever Plan" },
+  { icon: "🛡️", text: "Risk-Free and Zero Liquidity Issues" },
+  { icon: "⚡", text: "Instant Live Distribution via Blockchain" },
+  { icon: "🚫", text: "Scam-Free Platform" },
+  { icon: "💵", text: "Stable Income in USDT" },
+  { icon: "📉", text: "No Pump and Dump Market Risks" },
 ];

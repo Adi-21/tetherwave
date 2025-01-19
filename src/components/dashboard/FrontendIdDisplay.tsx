@@ -1,30 +1,24 @@
-import { useState, useEffect, useCallback } from "react";
-// import { useFrontendId } from '@/contexts/FrontendIdContext';
+import { useState, useEffect } from "react";
+import { useFrontendId } from '@/contexts/FrontendIdContext';
 import type { FrontendIdDisplayProps } from "@/types/contract";
 
 export function FrontendIdDisplay({
   address,
   isRegistered = true,
 }: FrontendIdDisplayProps) {
-  const [displayId, setDisplayId] = useState("Loading...");
-  // const { getFrontendId } = useFrontendId();
-
-  const getFrontendId = useCallback(async (address: string) => {
-    const response = await fetch(`/api/frontend-id?address=${address}`);
-    const data = await response.json();
-    return data.frontendId;
-  }, []);
+  const [displayId, setDisplayId] = useState<string>("Loading...");
+  const { getFrontendId } = useFrontendId();
 
   useEffect(() => {
     if (!address) {
+      console.log('No address provided');
       setDisplayId("Not Available");
       return;
     }
 
-    // If not registered, just show truncated address
     if (!isRegistered) {
-      const truncated = `${address.slice(0, 6)}...${address.slice(-4)}`;
-      setDisplayId(truncated);
+      console.log('Address not registered:', address);
+      setDisplayId("ID not found");
       return;
     }
 
@@ -32,14 +26,16 @@ export function FrontendIdDisplay({
 
     const fetchId = async () => {
       try {
+        console.log('Fetching ID for address:', address);
         const id = await getFrontendId(address);
+        console.log('Received ID:', id, 'for address:', address);
         if (isMounted) {
-          setDisplayId(id);
+          setDisplayId(id ? id : "ID not found");
         }
-      } catch {
+      } catch (error) {
+        console.error('Error fetching ID:', error);
         if (isMounted) {
-          const truncated = `${address.slice(0, 6)}...${address.slice(-4)}`;
-          setDisplayId(truncated);
+          setDisplayId("ID not found");
         }
       }
     };
@@ -51,5 +47,5 @@ export function FrontendIdDisplay({
     };
   }, [address, isRegistered, getFrontendId]);
 
-  return displayId;
+  return <span className="text-sm lg:text-base font-semibold">{displayId}</span>;
 }

@@ -41,12 +41,12 @@ const HeroSection = () => {
                 <span className="leading-tight">Earning with</span>
                 <br />
                 <span className="leading-tight font-extrabold">
-                  Tether Ventures
+                  Tether Waves
                 </span>
               </h1>
             </div>
             <p className="lg:text-xl text-gray-400">
-              Leverage Your Network for Unmatched Rewards and Opportunities.
+               World&apos;s first fully decentralized community building platform.
             </p>
             <div className="flex gap-8">
               <div className="">

@@ -56,10 +56,21 @@ export const dashboardAPI = {
 
     async bulkLookupWallets(addresses: string[]) {
         try {
+            console.log('Sending addresses to bulk lookup:', addresses);
             const response = await api.post('/bulk-lookup', {
-                wallet_addresses: addresses
+                wallet_addresses: addresses.map(addr => addr)
             });
-            return response.data;
+            console.log('Bulk lookup raw response:', response.data);
+            
+            const transformedData: Record<string, string> = {};
+            for (const address of addresses) {
+                const addr = address;
+                if (response.data.mapping?.[addr]) {
+                    transformedData[addr.toLowerCase()] = response.data.mapping[addr];
+                }
+            }
+            console.log('Transformed bulk lookup response:', transformedData);
+            return transformedData;
         } catch (error) {
             console.error('Bulk Lookup API Error:', error);
             throw error;

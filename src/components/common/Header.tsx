@@ -3,39 +3,39 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+// import { usePathname } from "next/navigation";
 import { IoMenu, IoClose } from "react-icons/io5";
 import Container from "./Container";
 import { WalletConnect } from "../WalletConnect";
 
-const navItems = [
-  { name: "Staking", href: "" },
-  { name: "Integrations", href: "" },
-  { name: "Node Operators", href: "" },
-  { name: "Tether DAO", href: "" },
-];
+// const navItems = [
+//   { name: "Staking", href: "" },
+//   { name: "Integrations", href: "" },
+//   { name: "Node Operators", href: "" },
+//   { name: "Tether DAO", href: "" },
+// ];
 
 const Header = () => {
-  const pathname = usePathname();
+  // const pathname = usePathname();
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const NavLinks = ({ className }: { className?: string }) => (
-    <nav
-      className={`flex flex-col lg:flex-row lg:items-center gap-1 lg:gap-3 lg:text-sm ${className}`}
-    >
-      {navItems.map((item) => (
-        <Link
-          key={item.name}
-          href={item.href}
-          className={`font-medium px-4 py-0.5 transition-all duration-300  hover:text-gray-100 text-lg ${pathname === item.href ? "text-gray-200" : "text-gray-300"
-            }`}
-          onClick={() => isMobileMenuOpen && setMobileMenuOpen(false)}
-        >
-          {item.name}
-        </Link>
-      ))}
-    </nav>
-  );
+  // const NavLinks = ({ className }: { className?: string }) => (
+  //   <nav
+  //     className={`flex flex-col lg:flex-row lg:items-center gap-1 lg:gap-3 lg:text-sm ${className}`}
+  //   >
+  //     {navItems.map((item) => (
+  //       <Link
+  //         key={item.name}
+  //         href={item.href}
+  //         className={`font-medium px-4 py-0.5 transition-all duration-300  hover:text-gray-100 text-lg ${pathname === item.href ? "text-gray-200" : "text-gray-300"
+  //           }`}
+  //         onClick={() => isMobileMenuOpen && setMobileMenuOpen(false)}
+  //       >
+  //         {item.name}
+  //       </Link>
+  //     ))}
+  //   </nav>
+  // );
 
   return (
     <header
@@ -48,9 +48,9 @@ const Header = () => {
           <section>
             <BrandLogo />
           </section>
-          <section className="hidden lg:block">
+          {/* <section className="hidden lg:block">
             <NavLinks />
-          </section>
+          </section> */}
           <section className="flex items-center gap-4">
             <WalletConnect />
 
@@ -73,9 +73,9 @@ const Header = () => {
           <div className="px-4">
             <BrandLogo />
           </div>
-          <div className="mt-8">
+          {/* <div className="mt-8">
             <NavLinks />
-          </div>
+          </div> */}
 
           <button
             type="button"
@@ -102,9 +102,9 @@ export default Header;
 
 const BrandLogo = () => (
   <Link href="/" className="flex items-center justify-start gap-2">
-    <div className="w-16 h-10 rounded-md overflow-hidden bg-white flex items-center justify-center">
+    <div className="w-16 lg:w-24  rounded-md overflow-hidden  flex items-center justify-center">
       <Image
-        src="/images/logo.jpg"
+        src="/images/logo.png"
         alt="Logo"
         width={400}
         height={400}
