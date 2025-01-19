@@ -145,36 +145,27 @@ export const contractUtils = {
     async getRecentIncomeEventsPaginated(
         userAddress: Address,
         startIndex: bigint,
-        limit: bigint
+        limit: bigint,
+        filterTypes: number[] = []
     ): Promise<RecentIncomeEvents> {
         try {
             const { tetherWave } = getContracts();
 
-            // First get total count
-            const totalData = await tetherWave.publicClient.readContract({
-                ...tetherWave,
-                functionName: 'getRecentIncomeEventsPaginated',
-                args: [userAddress, BigInt(0), BigInt(1)],
-            }) as [Address[], number[], bigint[], number[], number];
-
-            const totalCount = Number(totalData[4]);
-            const newStartIndex = BigInt(Math.max(totalCount - Number(startIndex) - Number(limit), 0));
-
-            // Get data with reversed index
             const data = await tetherWave.publicClient.readContract({
                 ...tetherWave,
                 functionName: 'getRecentIncomeEventsPaginated',
-                args: [userAddress, newStartIndex, limit],
-            }) as [Address[], number[], bigint[], number[], number];
+                args: [userAddress, startIndex, limit, filterTypes],
+            }) as [Address[], number[], bigint[], number[], number[], bigint];
 
-            const [userAddresses, levelNumbers, amounts, timestamps] = data;
+            const [userAddresses, levelNumbers, amounts, timestamps, incomeTypes, totalCount] = data;
 
             return {
                 userAddresses,
                 levelNumbers: levelNumbers.map(Number),
                 amounts: amounts.map(amount => amount.toString()),
                 timestamps: timestamps.map(Number),
-                totalCount
+                incomeTypes: incomeTypes.map(Number),
+                totalCount: Number(totalCount)
             };
         } catch {
             return {
@@ -182,6 +173,7 @@ export const contractUtils = {
                 levelNumbers: [],
                 amounts: [],
                 timestamps: [],
+                incomeTypes: [],
                 totalCount: 0
             };
         }

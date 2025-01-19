@@ -49,7 +49,7 @@ const GeneologyPage = () => {
               type="button"
               onClick={() => address && currentAddress !== address && handleAddressClick(address)}
               className={`p-4 rounded-lg transition-all duration-200 
-                ${currentAddress === address ? 'bg-white/40 dark:bg-white/5' : 'bg-white/40 dark:bg-white/5'}
+                ${currentAddress === address ? 'bg-white/40 dark:bg-white/5 border-2 border-gradient' : 'bg-white/40 dark:bg-white/5'}
                 backdrop-blur-lg shadow-md hover:shadow-lg`}
             >
               <FrontendIdDisplay address={currentAddress} isRegistered={true} />
@@ -80,7 +80,7 @@ const GeneologyPage = () => {
                   <button
                     type="button"
                     onClick={() => handleAddressClick(downlineAddress)}
-                    className="p-4 mx-4 lg:mx-8 rounded-lg transition-all duration-200 bg-white/40 dark:bg-white/5 
+                    className="p-4 mx-4 lg:mx-8 rounded-lg transition-all duration-200 border-2 boder-gradient bg-white/40 dark:bg-white/5 
                       backdrop-blur-lg shadow-md hover:shadow-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 text-nowrap"
                   >
                     <FrontendIdDisplay address={downlineAddress} isRegistered={true} />

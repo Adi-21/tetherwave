@@ -33,6 +33,7 @@ export interface RecentIncomeEvents {
     amounts: string[];
     levelNumbers: number[];
     timestamps: number[];
+    incomeTypes: number[];
     totalCount: number;
 }
 

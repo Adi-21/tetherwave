@@ -11,7 +11,7 @@ import RankIncome from "./RankIncome/RankIncome";
 import RecentIncome from "./RecentIncome/RecentIncome";
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch, RootState } from '@/store';
-import { setReferrerAddress, register, upgrade, setRecentIncomePage, fetchRecentIncomeData, fetchRankIncomeData, fetchProfileData, fetchAllIncomesData, fetchPackagesData, fetchWalletData, initializeReferral, fetchReferrerData } from '@/store/features/dashboardSlice';
+import { setReferrerAddress, register, upgrade, fetchRecentIncomeData, fetchRankIncomeData, fetchProfileData, fetchAllIncomesData, fetchPackagesData, fetchWalletData, initializeReferral, fetchReferrerData } from '@/store/features/dashboardSlice';
 import { toast } from 'react-hot-toast';
 import { useAccount } from 'wagmi';
 import { truncateAddress } from "@/lib/utils/format";
@@ -45,7 +45,8 @@ const DashboardPage = memo(() => {
         dispatch(fetchRecentIncomeData({
           address,
           page: 1,
-          itemsPerPage: 5
+          itemsPerPage: 5,
+          filterTypes: []
         }))
       ]).catch((error) => {
         throw new Error('Error fetching data:', error);
@@ -179,17 +180,6 @@ const DashboardPage = memo(() => {
     }
   }, [address, usdtFormatted, dispatch, usdtBalance, refetchBalance]);
 
-  const handlePageChange = useCallback((page: number) => {
-    dispatch(setRecentIncomePage(page));
-    if (address) {
-      dispatch(fetchRecentIncomeData({
-        address,
-        page,
-        itemsPerPage: recentIncome.pagination.itemsPerPage
-      }));
-    }
-  }, [address, dispatch, recentIncome.pagination.itemsPerPage]);
-
   return (
     <div className="flex flex-col justify-center items-center gap-4 w-full overflow-y-auto overflow-x-hidden scroll-smooth">
       <div className="lg:hidden flex justify-between items-center w-full drop-shadow-lg lg:p-4 pb-2 ps-5">
@@ -273,7 +263,6 @@ const DashboardPage = memo(() => {
         recentIncomes={recentIncome.data}
         currentLevel={profile.data.currentLevel}
         currentPage={recentIncome.pagination.currentPage}
-        setCurrentPage={handlePageChange}
         itemsPerPage={recentIncome.pagination.itemsPerPage}
         isLoading={recentIncome.isLoading}
       />

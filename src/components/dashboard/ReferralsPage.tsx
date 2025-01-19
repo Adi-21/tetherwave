@@ -9,7 +9,7 @@ import type { ReferralData } from "@/types/contract";
 import type { AppDispatch, RootState } from "@/store";
 import { FrontendIdDisplay } from "./FrontendIdDisplay";
 import Skeleton from "../common/Skeleton";
-import Pagination from "./dashboardPage/RecentIncome/Pagination";
+import Pagination from "../common/Pagination";
 
 const ReferralsPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -17,7 +17,7 @@ const ReferralsPage = () => {
   const { referralData, totalCount, currentPage, isLoading } = useSelector(
     (state: RootState) => state.referrals
   );
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
 
   useEffect(() => {
     if (address) {
@@ -34,7 +34,7 @@ const ReferralsPage = () => {
       {isLoading ? (
         <div className="flex flex-col justify-between items-center gap-4 p-4 rounded-lg bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md">
           {[...Array(4)].map((_, index) => (
-            <div key={index} className="h-10 lg:h-12 w-full">
+            <div key={`${index + 1}`} className="h-10 lg:h-12 w-full">
               <div className="w-full h-full">
                 <Skeleton className="h-full w-full" />
               </div>
@@ -59,7 +59,9 @@ const ReferralsPage = () => {
                   key={`referral-${index + 1}`}
                   className="text-start p-4 rounded-lg bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md"
                 >
-                  <td className="p-4">{index + 1}</td>
+                  <td className="py-2 px-8 text-left">
+                      {(currentPage - 1) * itemsPerPage + index + 1}
+                    </td>
                   <td className="p-4">
                     <FrontendIdDisplay
                       address={referral.userAddress}
