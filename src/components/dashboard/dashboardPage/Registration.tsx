@@ -2,8 +2,11 @@ import { memo } from 'react';
 import { LuKey } from "react-icons/lu";
 
 interface RegistrationProps {
-  referrerAddress: string;
-  setReferrerAddress: (address: string) => void;
+  referrerAddress: {
+    userId: string;
+    walletAddress: string;
+  };
+  setReferrerAddress: (address: { userId: string; walletAddress: string }) => void;
   handleRegister: () => void;
 }
 
@@ -22,8 +25,11 @@ const Registration = memo(({
         <input
           type="text"
           placeholder="Referrer Address"
-          value={referrerAddress}
-          onChange={(e) => setReferrerAddress(e.target.value)}
+          value={referrerAddress.walletAddress || referrerAddress.userId}
+          onChange={(e) => setReferrerAddress({
+            userId: referrerAddress.userId,
+            walletAddress: e.target.value
+          })}
           className="w-full py-3 px-4 rounded mb-4 bg-white/40 dark:bg-white/5 outline-none flex items-center space-x-2 drop-shadow-lg"
         />
         <button

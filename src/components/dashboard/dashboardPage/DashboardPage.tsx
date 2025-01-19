@@ -11,7 +11,7 @@ import RankIncome from "./RankIncome/RankIncome";
 import RecentIncome from "./RecentIncome/RecentIncome";
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch, RootState } from '@/store';
-import { setReferrerAddress, register, upgrade, setRecentIncomePage, fetchRecentIncomeData, fetchRankIncomeData, fetchProfileData, fetchAllIncomesData, fetchPackagesData, fetchWalletData } from '@/store/features/dashboardSlice';
+import { setReferrerAddress, register, upgrade, setRecentIncomePage, fetchRecentIncomeData, fetchRankIncomeData, fetchProfileData, fetchAllIncomesData, fetchPackagesData, fetchWalletData, initializeReferral, fetchReferrerData } from '@/store/features/dashboardSlice';
 import { toast } from 'react-hot-toast';
 import { useAccount } from 'wagmi';
 import { truncateAddress } from "@/lib/utils/format";
@@ -29,9 +29,16 @@ const DashboardPage = memo(() => {
 
   useEffect(() => {
     if (address) {
+      dispatch(initializeReferral());
+    }
+  }, [address, dispatch]);
+
+  useEffect(() => {
+    if (address) {
       Promise.all([
         dispatch(fetchProfileData(address)),
         dispatch(fetchWalletData(address)),
+        dispatch(fetchReferrerData(address)),
         dispatch(fetchAllIncomesData(address)),
         dispatch(fetchRankIncomeData(address)),
         dispatch(fetchPackagesData(address)),
@@ -68,7 +75,10 @@ const DashboardPage = memo(() => {
       });
 
       await dispatch(register({
-        referrerAddress,
+        referrerAddress: {
+          userId: registration.referrerAddress.userId,
+          walletAddress: referrerAddress
+        },
         balance: balances.usdt,
         userAddress: address
       })).unwrap();
@@ -106,7 +116,7 @@ const DashboardPage = memo(() => {
         }
       });
     }
-  }, [address, balances.usdt, dispatch, refetchBalance]);
+  }, [address, balances.usdt, dispatch, refetchBalance, registration.referrerAddress.userId]);
 
   const handleUpgrade = useCallback(async (targetLevel: number) => {
     if (!address || !usdtBalance) return;
@@ -188,7 +198,8 @@ const DashboardPage = memo(() => {
       <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 text-nowrap w-full">
         <ProfileDetails
           userProfileData={{
-            frontend_id: truncateAddress(address || '0x'),
+            userid: profile.data.userid,
+            created_at: profile.data.created_at,
             isLoading: profile.isLoading
           }}
           isLoading={profile.isLoading}
@@ -200,14 +211,15 @@ const DashboardPage = memo(() => {
         <WalletDetails
           address={address || '0x'}
           referralCode={wallet.data.referralCode || address || '0x'}
+          userId={profile.data.userid}
         />
       </div>
 
-      {!profile.data.currentLevel && (
+      {!packages.isRegistered && (
         <Registration
           referrerAddress={registration.referrerAddress}
-          setReferrerAddress={(address: string) => dispatch(setReferrerAddress(address))}
-          handleRegister={() => void handleRegister(registration.referrerAddress)}
+          setReferrerAddress={(address: { userId: string; walletAddress: string }) => dispatch(setReferrerAddress(address))}
+          handleRegister={() => void handleRegister(registration.referrerAddress.walletAddress)}
         />
       )}
 

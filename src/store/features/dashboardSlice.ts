@@ -2,8 +2,9 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import type { RecentIncomeEvents } from '@/types/contract';
 import { getContracts } from '@/lib/constants/contracts';
 import { LEVELS } from '@/lib/constants';
+import { dashboardAPI } from '@/services/api';
 
-const REGISTRATION_COST = BigInt(11 * 10 ** 18); 
+const REGISTRATION_COST = BigInt(11 * 10 ** 18);
 const LEVEL_COSTS = {
     2: BigInt(22 * 10 ** 18),
     3: BigInt(44 * 10 ** 18),
@@ -30,6 +31,9 @@ interface ProfileState {
         levelName: string;
         directSponsor: string;
         matrixSponsor: string;
+        userid?: string;
+        created_at?: string;
+        total_referrals?: number;
     };
 }
 
@@ -46,7 +50,10 @@ interface RegistrationState {
     isLoading: boolean;
     error: string | null;
     isRegistered: boolean;
-    referrerAddress: string;
+    referrerAddress: {
+        userId: string;
+        walletAddress: string;
+    };
 }
 
 interface PackagesState {
@@ -127,7 +134,10 @@ const initialState: DashboardState = {
         isLoading: false,
         error: null,
         isRegistered: false,
-        referrerAddress: ''
+        referrerAddress: {
+            userId: '',
+            walletAddress: ''
+        }
     },
     packages: {
         isLoading: false,
@@ -177,13 +187,61 @@ const initialState: DashboardState = {
     isLoading: true,
 };
 
+export const initializeReferral = createAsyncThunk(
+    'dashboard/initializeReferral',
+    async (_, { rejectWithValue }) => {
+        try {
+            // Check for query parameter format
+            const params = new URLSearchParams(window.location.search);
+            const queryRefId = params.get("ref");
+
+            // Check for path format
+            const pathParts = window.location.pathname.split('/');
+            const pathRefId = pathParts[pathParts.length - 1];
+
+            const refId = queryRefId || (pathParts[1] === 'referral' ? pathRefId : null);
+
+            if (refId) {
+                localStorage.setItem("tetherwave_refId", refId);
+                return refId;
+            }
+            return rejectWithValue('Failed to initialize referral');
+        } catch {
+            return rejectWithValue('Failed to initialize referral');
+        }
+    }
+);
+
+export const fetchReferrerData = createAsyncThunk(
+    'dashboard/fetchReferrerData',
+    async (address: string, { dispatch, rejectWithValue }) => {
+        try {
+            const storedRefId = localStorage.getItem("tetherwave_refId");
+            if (!storedRefId || !address) return null;
+
+            const data = await dashboardAPI.getReferralInfo(storedRefId);
+            // Store both userId and wallet address
+            dispatch(setReferrerAddress({
+                userId: storedRefId,
+                walletAddress: data.referring_wallet
+            }));
+            return {
+                userId: storedRefId,
+                walletAddress: data.referring_wallet
+            };
+        } catch (error) {
+            return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch referrer');
+        }
+    }
+);
+
 // Thunks for Profile and Wallet
 export const fetchProfileData = createAsyncThunk(
     'dashboard/fetchProfileData',
     async (address: string, { rejectWithValue }) => {
         try {
             const { tetherWave } = getContracts();
-            
+
             const userStats = await tetherWave.publicClient.readContract({
                 ...tetherWave,
                 functionName: 'getUserStats',
@@ -195,15 +253,23 @@ export const fetchProfileData = createAsyncThunk(
                 functionName: 'getMatrixPosition',
                 args: [address]
             }) as [string, string];
-            
+
             const currentLevel = Number(userStats[0]);
             const levelName = LEVELS[currentLevel]?.name || 'Not Registered';
+
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            const data = await dashboardAPI.getUserProfile(address);
+
+            console.log(data);
 
             return {
                 currentLevel,
                 levelName,
                 directSponsor: matrixPosition[0],
                 matrixSponsor: matrixPosition[1],
+                userid: data.userid,
+                created_at: data.created_at,
+                total_referrals: data.total_referrals,
             };
         } catch {
             return rejectWithValue('Failed to fetch profile data');
@@ -214,31 +280,34 @@ export const fetchProfileData = createAsyncThunk(
 // Registration thunk
 export const register = createAsyncThunk(
     'dashboard/register',
-    async ({ 
-        referrerAddress, 
+    async ({
+        referrerAddress,
         userAddress,
-        balance 
-    }: { 
-        referrerAddress: string; 
+        balance
+    }: {
+        referrerAddress: {
+            userId: string;
+            walletAddress: string;
+        };
         userAddress: string;
         balance: string;
-    }, { rejectWithValue }) => {
+    }, { rejectWithValue, dispatch }) => {
         try {
             const { tetherWave, usdt } = getContracts();
-            
+
             const currentBalance = BigInt(Number.parseFloat(balance) * 10 ** 18);
-            
+
             if (currentBalance < REGISTRATION_COST) {
                 throw new Error(`Insufficient USDT balance for registration. You need 50 USDT but have ${balance} USDT.`);
             }
-    
+
             const approveAmount = BigInt(10000 * 10 ** 18);
             const allowance = await usdt.publicClient.readContract({
                 ...usdt,
                 functionName: 'allowance',
                 args: [userAddress as `0x${string}`, tetherWave.address]
             }) as bigint;
-    
+
             if (allowance < approveAmount) {
                 const approveHash = await usdt.walletClient.writeContract({
                     ...usdt,
@@ -248,21 +317,35 @@ export const register = createAsyncThunk(
                 });
                 await tetherWave.publicClient.waitForTransactionReceipt({ hash: approveHash });
             }
-    
+
             const { request } = await tetherWave.publicClient.simulateContract({
                 ...tetherWave,
                 functionName: 'register',
-                args: [referrerAddress],
+                args: [referrerAddress.walletAddress],
                 account: userAddress as `0x${string}`
             });
-    
+
             const hash = await tetherWave.walletClient.writeContract(request);
             const receipt = await tetherWave.publicClient.waitForTransactionReceipt({ hash });
 
             if (receipt.status === 'success') {
-                return { success: true, transactionHash: hash };
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 10000));
+                    const response = await dashboardAPI.registerWithReferral(userAddress, referrerAddress.userId);
+                    console.log('Backend registration success:', response);
+
+                    localStorage.removeItem("tetherwave_refId");
+                    await dispatch(fetchProfileData(userAddress));
+                    await dispatch(fetchPackagesData(userAddress));
+                    
+                    return { success: true, transactionHash: hash };
+                } catch (error) {
+                    console.error('Backend registration error:', error);
+                    throw new Error('Backend registration failed');
+                }
             }
-            return rejectWithValue('Registration failed');
+
+            return rejectWithValue('Blockchain registration failed');
         } catch (error) {
             if (error instanceof Error) {
                 return rejectWithValue(error.message);
@@ -275,14 +358,14 @@ export const register = createAsyncThunk(
 // Upgrade package thunk
 export const upgrade = createAsyncThunk(
     'dashboard/upgrade',
-    async ({ targetLevel, userAddress }: { 
-        targetLevel: number; 
+    async ({ targetLevel, userAddress }: {
+        targetLevel: number;
         userAddress: string;
         balance: string;
     }, { rejectWithValue }) => {
         try {
             const { tetherWave, usdt } = getContracts();
-            
+
             // Check USDT balance first
             const userBalance = await usdt.publicClient.readContract({
                 ...usdt,
@@ -330,7 +413,7 @@ export const upgrade = createAsyncThunk(
             await tetherWave.publicClient.waitForTransactionReceipt({ hash });
 
             return { targetLevel, transactionHash: hash };
-        } catch (error: unknown) {   
+        } catch (error: unknown) {
             if (typeof error === 'object' && error !== null) {
                 const err = error as ContractError;
                 if (err.message?.includes('0xfb8f41b2')) {
@@ -343,7 +426,7 @@ export const upgrade = createAsyncThunk(
                     return rejectWithValue(error.message);
                 }
             }
-            
+
             return rejectWithValue('Upgrade failed');
         }
     }
@@ -381,19 +464,19 @@ export const fetchAllIncomesData = createAsyncThunk(
 // Add these thunks with others
 export const fetchRecentIncomeData = createAsyncThunk(
     'dashboard/fetchRecentIncomeData',
-    async ({ 
-        address, 
-        page, 
-        itemsPerPage 
-    }: { 
-        address: string; 
-        page: number; 
-        itemsPerPage: number 
+    async ({
+        address,
+        page,
+        itemsPerPage
+    }: {
+        address: string;
+        page: number;
+        itemsPerPage: number
     }, { rejectWithValue }) => {
         try {
             const { tetherWave } = getContracts();
             const startIndex = (page - 1) * itemsPerPage;
-            
+
             const recentIncomes = await tetherWave.publicClient.readContract({
                 ...tetherWave,
                 functionName: 'getRecentIncomeEventsPaginated',
@@ -418,7 +501,7 @@ export const fetchRankIncomeData = createAsyncThunk(
     async (address: string, { rejectWithValue }) => {
         try {
             const { tetherWave } = getContracts();
-            
+
             // Fetch level incomes with proper type assertion
             const levelIncomes = await tetherWave.publicClient.readContract({
                 ...tetherWave,
@@ -449,7 +532,7 @@ export const fetchPackagesData = createAsyncThunk(
     async (address: string, { rejectWithValue }) => {
         try {
             const { tetherWave } = getContracts();
-            
+
             const userStats = await tetherWave.publicClient.readContract({
                 ...tetherWave,
                 functionName: 'getUserStats',
@@ -458,7 +541,7 @@ export const fetchPackagesData = createAsyncThunk(
 
             return {
                 currentLevel: Number(userStats[0]),
-                isRegistered: userStats[0]
+                isRegistered: Boolean(userStats[0])
             };
         } catch {
             return rejectWithValue('Failed to fetch packages data');
@@ -471,7 +554,7 @@ export const fetchWalletData = createAsyncThunk(
     async (address: string, { rejectWithValue }) => {
         try {
             const { tetherWave } = getContracts();
-            
+
             const referralCode = await tetherWave.publicClient.readContract({
                 ...tetherWave,
                 functionName: 'getReferralCode',
@@ -495,7 +578,7 @@ const dashboardSlice = createSlice({
             state.isLoading = action.payload.isLoading;
             state.globalError = action.payload.error;
         },
-        setReferrerAddress: (state, action: PayloadAction<string>) => {
+        setReferrerAddress: (state, action: PayloadAction<{ userId: string; walletAddress: string }>) => {
             state.registration.referrerAddress = action.payload;
         },
         resetRegistrationError: (state) => {
@@ -523,7 +606,7 @@ const dashboardSlice = createSlice({
                 state.profile.isLoading = false;
                 state.profile.error = action.error.message || 'Failed to fetch profile';
             })
-            
+
             // Registration reducers
             .addCase(register.pending, (state) => {
                 state.registration.isLoading = true;
@@ -537,7 +620,7 @@ const dashboardSlice = createSlice({
                 state.registration.isLoading = false;
                 state.registration.error = action.error.message || 'Registration failed';
             })
-            
+
             // Upgrade reducers
             .addCase(upgrade.pending, (state) => {
                 state.packages.isLoading = true;
@@ -637,9 +720,9 @@ const dashboardSlice = createSlice({
     }
 });
 
-export const { 
-    setReferrerAddress, 
-    resetRegistrationError, 
+export const {
+    setReferrerAddress,
+    resetRegistrationError,
     resetUpgradeError,
     setRecentIncomePage,
     setLoading

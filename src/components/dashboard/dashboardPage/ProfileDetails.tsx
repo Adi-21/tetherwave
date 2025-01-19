@@ -5,7 +5,10 @@ import Skeleton from "@/components/common/Skeleton";
 
 interface ProfileDetailsProps {
   userProfileData: {
-    frontend_id: string;
+    userid?: string;
+    wallet_address?: string;
+    created_at?: string;
+    total_referrals?: number;
     isLoading: boolean;
   };
   currentLevel: number;
@@ -55,7 +58,7 @@ const ProfileDetails = memo(({
           <ProfileItem
             icon={LuHash}
             label="User ID"
-            value={userProfileData?.frontend_id || "Not Available"}
+            value={userProfileData?.userid || "Not Available"}
           />
           <ProfileItem
             icon={LuCrown}
@@ -65,7 +68,14 @@ const ProfileDetails = memo(({
           <ProfileItem
             icon={LuCalendar}
             label="Activation Date"
-            value="Not Available"
+            value={userProfileData?.created_at 
+              ? new Date(userProfileData.created_at).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric'
+                })
+              : "DD/MM/YYYY"
+            }
           />
           <SponsorInfo
             directSponsorId={directSponsorId}
@@ -74,7 +84,7 @@ const ProfileDetails = memo(({
         </>
       )}
     </div>
-  ), [isLoading, userProfileData?.frontend_id, currentLevel, levelName, directSponsorId, matrixSponsorId]);
+  ), [isLoading, userProfileData?.userid, currentLevel, levelName, directSponsorId, matrixSponsorId, userProfileData?.created_at]);
 
   return (
     <section className="relative p-4 rounded-lg bg-white/40 dark:bg-white/5 backdrop-blur-lg">
