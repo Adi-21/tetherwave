@@ -1,5 +1,5 @@
 export const siteConfig = {
-    name: "Tether Ventures",
+    name: "Tether Waves",
     description: "Building Networks, Growing Wealth Together",
     mainNav: [
         {

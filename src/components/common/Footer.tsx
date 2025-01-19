@@ -12,7 +12,7 @@ export function Footer() {
           <section className="grid lg:grid-cols-2 gap-8 w-full">
             <div className="flex flex-col justify-center lg:items-start lg:justify-start gap-4 w-full">
               <div className="text-center lg:text-start">
-                <h2 className="text-2xl font-bold mb-2">Tether Ventures</h2>
+                <h2 className="text-2xl font-bold mb-2">Tether Waves</h2>
                 <p className="text-l text-gray-400">
                   Building Networks, Growing Wealth Together
                 </p>
@@ -59,7 +59,7 @@ export function Footer() {
           </section>
           <section className="flex justify-center items-center pt-4 l:pt-6 border-t w-full border-white border-opacity-20">
             <div className="text-gray-400">
-              © {new Date().getFullYear()} Tether Ventures. All rights reserved.
+              © {new Date().getFullYear()} Tether Waves. All rights reserved.
             </div>
           </section>
         </div>

@@ -38,7 +38,7 @@ export const WalletConnect = () => {
                                         variant="default"
                                         className="bg-[#f3ba2f] text-black hover:bg-[#f3ba2f]/90 shadow-[4px_4px_12px_#f3ba2f90,-4px_-4px_12px_#f3ba2f90] h-10 font-semibold transition-all duration-300"
                                     >
-                                        Launch App
+                                        Connect Wallet    
                                     </Button>
                                 );
                             }
