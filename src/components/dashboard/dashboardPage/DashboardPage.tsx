@@ -103,6 +103,7 @@ const DashboardPage = memo(() => {
         }
       });
     } catch (error: unknown) {
+      toast.dismiss();
       const errorMessage = error instanceof Error ? error.message :
         typeof error === 'object' && error && 'message' in error ? String(error.message) :
           'Registration failed';

@@ -50,7 +50,7 @@ const DashboardHeader = () => {
             >
               <div className="flex items-center justify-center gap-1 overflow-hidden">
                 <Image
-                  src="/images/logo.jpg"
+                  src="/images/logo.png"
                   alt="Logo"
                   width={400}
                   height={400}
