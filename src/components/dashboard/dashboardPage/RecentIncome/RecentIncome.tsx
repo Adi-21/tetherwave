@@ -3,9 +3,9 @@ import type { RecentIncomeEvents } from "@/types/contract";
 import { LuHistory } from "react-icons/lu";
 import Skeleton from "@/components/common/Skeleton";
 import { formatEther } from "viem";
-import { truncateAddress } from "@/lib/utils/format";
 import { formatDistanceToNow } from 'date-fns';
 import Pagination from "./Pagination";
+import { FrontendIdDisplay } from "@/components/dashboard/FrontendIdDisplay";
 
 interface RecentIncomeProps {
     recentIncomes: RecentIncomeEvents;
@@ -26,7 +26,7 @@ interface IncomeEventCardProps {
 const IncomeEventCard = memo(({ address, level, amount, timestamp }: IncomeEventCardProps) => (
     <div className="flex flex-col lg:flex-row justify-between items-center gap-2 p-4 rounded-lg bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md">
         <div className="flex flex-col lg:flex-row items-center gap-2 lg:gap-4">
-            <p className="text-sm lg:text-base font-semibold">{truncateAddress(address)}</p>
+            <FrontendIdDisplay address={address} isRegistered={level > 0} />
             <p className="text-sm lg:text-base font-bold text-purple-600">Level {level}</p>
         </div>
         <div className="flex flex-col lg:flex-row items-center gap-2 lg:gap-4">
