@@ -15,7 +15,7 @@ const CommunityPage = () => {
   const { downlineData, selectedLevel, currentPage, isLoading } = useSelector(
     (state: RootState) => state.community
   );
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
 
   useEffect(() => {
     if (address) {
@@ -107,7 +107,6 @@ const CommunityPage = () => {
                 No community data available for this level.
               </p>
             )}
-
             {totalPages > 1 && (
               <div className="mt-4">
                 <Pagination
@@ -120,6 +119,7 @@ const CommunityPage = () => {
                 />
                </div>
             )}
+
           </div>
         )}
       </section>
