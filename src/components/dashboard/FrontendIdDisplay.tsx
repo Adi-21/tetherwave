@@ -11,13 +11,11 @@ export function FrontendIdDisplay({
 
   useEffect(() => {
     if (!address) {
-      console.log('No address provided');
       setDisplayId("Not Available");
       return;
     }
 
     if (!isRegistered) {
-      console.log('Address not registered:', address);
       setDisplayId("ID not found");
       return;
     }
@@ -26,14 +24,11 @@ export function FrontendIdDisplay({
 
     const fetchId = async () => {
       try {
-        console.log('Fetching ID for address:', address);
         const id = await getFrontendId(address);
-        console.log('Received ID:', id, 'for address:', address);
         if (isMounted) {
           setDisplayId(id ? id : "ID not found");
         }
-      } catch (error) {
-        console.error('Error fetching ID:', error);
+      } catch {
         if (isMounted) {
           setDisplayId("ID not found");
         }

@@ -24,10 +24,9 @@ export function FrontendIdProvider({ children }: { children: React.ReactNode }) 
                 }));
                 return response[lowerAddress];
             }
-            return "ID not found";
-        } catch (error) {
-            console.error('Error fetching frontend ID:', error);
-            return "ID not found";
+            throw new Error('ID not found');
+        } catch {
+            throw new Error('Error fetching frontend ID');
         }
     }, [frontendIdCache]);
 
@@ -38,8 +37,8 @@ export function FrontendIdProvider({ children }: { children: React.ReactNode }) 
                 ...prev,
                 ...response
             }));
-        } catch (error) {
-            console.error('Error in batch fetch:', error);
+        } catch {
+            throw new Error('Error in batch fetch');
         }
     }, []);
 

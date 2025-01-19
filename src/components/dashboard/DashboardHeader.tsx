@@ -15,7 +15,7 @@ const navItems = [
   { title: "Referrals", path: "/dashboard/referrals" },
   { title: "Community", path: "/dashboard/community" },
   { title: "Geneology", path: "/dashboard/geneology" },
-  { title: "Royalty", path: "/dashboard/royalty" },
+  { title: "FFR", path: "/dashboard/royalty" },
 ];
 
 const DashboardHeader = () => {
@@ -55,7 +55,7 @@ const DashboardHeader = () => {
                   width={400}
                   height={400}
                   quality={100}
-                  className="object-cover w-16 h-10 rounded-md"
+                  className=" w-28 h-12"
                 />
               </div>
             </Link>

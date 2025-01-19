@@ -19,27 +19,20 @@ export const dashboardAPI = {
                 wallet_address: walletAddress
             });
             return response.data;
-        } catch (error) {
-            console.error('Registration API Error:', error);
-            throw error;
+        } catch {
+            throw new Error('Registration API Error');
         }
     },
 
     async  registerWithReferral(walletAddress: string, referredBy: string) {
         try {
-            console.log('Registration Request:', {
-                wallet_address: walletAddress,
-                referred_by: referredBy
-            });
             const response = await api.post('/register-referred', {
                 wallet_address: walletAddress,
                 referred_by: referredBy
             });
-            console.log('Registration Response:', response.data);
             return response.data;
-        } catch (error) {
-            console.error('Registration API Error:', error);
-            throw error;
+        } catch {
+            throw new Error('Registration API Error');
         }
     },
 
@@ -48,20 +41,17 @@ export const dashboardAPI = {
         try {
             const response = await api.get(`/user/${walletAddress}`);
             return response.data;
-        } catch (error) {
-            console.error('User Profile API Error:', error);
-            throw error;
+        } catch {
+            throw new Error('User Profile API Error');
         }
     },
 
     async bulkLookupWallets(addresses: string[]) {
         try {
-            console.log('Sending addresses to bulk lookup:', addresses);
             const response = await api.post('/bulk-lookup', {
                 wallet_addresses: addresses.map(addr => addr)
             });
-            console.log('Bulk lookup raw response:', response.data);
-            
+
             const transformedData: Record<string, string> = {};
             for (const address of addresses) {
                 const addr = address;
@@ -69,11 +59,9 @@ export const dashboardAPI = {
                     transformedData[addr.toLowerCase()] = response.data.mapping[addr];
                 }
             }
-            console.log('Transformed bulk lookup response:', transformedData);
             return transformedData;
-        } catch (error) {
-            console.error('Bulk Lookup API Error:', error);
-            throw error;
+        } catch {
+            throw new Error('Bulk Lookup API Error');
         }
     },
 
@@ -82,9 +70,8 @@ export const dashboardAPI = {
         try {
             const response = await api.get(`/referral/${referralCode}`);
             return response.data;
-        } catch (error) {
-            console.error('Referral Info API Error:', error);
-            throw error;
+        } catch {
+            throw new Error('Referral Info API Error');
         }
     }
 };
@@ -93,7 +80,6 @@ export const dashboardAPI = {
 api.interceptors.response.use(
     response => response,
     error => {
-        console.error('API Error:', error);
         if (error.response?.data?.message) {
             throw new Error(error.response.data.message);
         }

@@ -52,9 +52,11 @@ const ReferralsPage = () => {
                   <FrontendIdDisplay address={referral.userAddress} isRegistered={referral.currentLevel > 0} />
                 </td>
                 <td className="py-2 px-4">
-                  {new Date(
-                    referral.activationTime * 1000
-                  ).toLocaleDateString()}
+                  {new Date(referral.activationTime * 1000).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                  })}
                 </td>
                 <td className="py-2 px-4">
                   {LEVELS[referral.currentLevel - 1]?.name ||

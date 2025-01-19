@@ -19,15 +19,19 @@ interface WalletItemProps {
 }
 
 const WalletItem = memo(({ icon: Icon, label, value, copyable, onCopy }: WalletItemProps) => (
-  <div className="flex items-center space-x-2 px-4 py-4 rounded-md bg-white/40 dark:bg-white/5 backdrop-blur-lg">
-    <Icon className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
-    <span className="text-sm font-medium">{label}:</span>
-    <span className="font-bold">{value}</span>
-    {copyable && (
-      <button type="button" onClick={onCopy} className="ml-2 hover:text-primary">
-        <Copy className="h-4 w-4" />
-      </button>
-    )}
+  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 px-4 py-4 rounded-md bg-white/40 dark:bg-white/5 backdrop-blur-lg">
+    <div className="flex items-center gap-2 min-w-fit">
+      <Icon className="h-4 lg:h-5 w-4 lg:w-4 text-muted-foreground" />
+      <span className="text-sm font-medium">{label}:</span>
+    </div>
+    <div className="flex items-center gap-2 w-full sm:flex-1 break-words">
+      <span className="font-bold text-sm lg:text-base">{value}</span>
+      {copyable && (
+        <button type="button" onClick={onCopy} className="ml-auto hover:text-primary">
+          <Copy className="h-4 w-4" />
+        </button>
+      )}
+    </div>
   </div>
 ));
 
