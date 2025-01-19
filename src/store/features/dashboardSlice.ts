@@ -192,7 +192,7 @@ const initialState: DashboardState = {
 
 export const initializeReferral = createAsyncThunk(
     'dashboard/initializeReferral',
-    async (_, { rejectWithValue }) => {
+    async (_, { rejectWithValue, dispatch }) => {
         try {
             // Check for query parameter format
             const params = new URLSearchParams(window.location.search);
@@ -206,6 +206,11 @@ export const initializeReferral = createAsyncThunk(
 
             if (refId) {
                 localStorage.setItem("tetherwave_refId", refId);
+                const data = await dashboardAPI.getReferralInfo(refId);
+                dispatch(setReferrerAddress({
+                    userId: refId,
+                    walletAddress: data.referring_wallet
+                }));
                 return refId;
             }
             return rejectWithValue('Failed to initialize referral');
