@@ -70,9 +70,9 @@ const RoyaltySlab = memo(() => {
     , [royaltyData, calculations, address, dispatch]);
 
     const rowRenderer = useCallback(({ index, key, style }: { index: number; key: string; style: React.CSSProperties }) => (
-        <div key={key} style={style} className="px-4 py-2">
+        <div key={key} style={style} className="py-2">
             {isLoading ? (
-                <Skeleton className="h-[400px] w-full rounded-md" />
+                <Skeleton className="min-h-[400px] lg:h-[400px] w-full rounded-md" />
             ) : (
                 <TierCard {...rowData[index]} />
             )}
@@ -80,7 +80,7 @@ const RoyaltySlab = memo(() => {
     ), [isLoading, rowData]);
 
     return (
-        <div className="w-full h-[800px]">
+        <div className="w-full min-h-[800px] lg:h-[800px]">
             <AutoSizer>
                 {({ width, height }) => (
                     <List
