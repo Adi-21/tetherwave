@@ -14,7 +14,7 @@ export const useAutoRegistration = (
     const dispatch = useDispatch<AppDispatch>();
 
     useEffect(() => {
-        const TWENTY_FOUR_HOURS = 2 * 60 * 1000;
+        const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
         const lastRegistrationAttempt = localStorage.getItem(`lastRegistrationAttempt_${index}`);
         const now = Date.now();
 

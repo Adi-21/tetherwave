@@ -65,11 +65,11 @@ const CommunityPage = () => {
             <table className="w-full mt-4 border-collapse rounded-lg overflow-hidden">
               <thead>
                 <tr className="p-4 bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md">
-                  <th className="p-4 text-left">S.No.</th>
-                  <th className="p-4 text-left">Address</th>
-                  <th className="p-4 text-left">Sponsor</th>
-                  <th className="p-4 text-left">Direct Referral</th>
-                  <th className="p-4 text-left">Current Levels</th>
+                  <th className="p-4 text-center">S.No.</th>
+                  <th className="p-4 text-center">Address</th>
+                  <th className="p-4 text-center">Sponsor</th>
+                  <th className="p-4 text-center">Direct Referral</th>
+                  <th className="p-4 text-center">Current Levels</th>
                 </tr>
               </thead>
               <tbody>
@@ -78,25 +78,25 @@ const CommunityPage = () => {
                     key={`${index + 1}`}
                     className="bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md"
                   >
-                    <td className="py-2 px-8 text-left">
+                    <td className="py-2 px-8 text-center">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className="p-4 text-left">
+                    <td className="p-4 text-center">
                       <FrontendIdDisplay
                         address={address}
                         isRegistered={true}
                       />
                     </td>
-                    <td className="p-4 text-left">
+                    <td className="p-4 text-center">
                       <FrontendIdDisplay
                         address={downlineData.sponsorAddresses[index]}
                         isRegistered={true}
                       />
                     </td>
-                    <td className="py-2 px-16 text-left">
+                    <td className="py-2 px-16 text-center">
                       {downlineData.directReferralsCount[index]}
                     </td>
-                    <td className="py-2 px-16 text-left">
+                    <td className="py-2 px-16 text-center">
                       {LEVELS[downlineData.currentLevels[index] - 1]?.name ||
                         `Level ${downlineData.currentLevels[index]}`}
                     </td>

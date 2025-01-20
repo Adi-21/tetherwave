@@ -99,12 +99,12 @@ const RecentIncome = memo(
                                     <table className="w-full text-nowrap">
                                         <thead>
                                             <tr className="p-4 bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md">
-                                                <th className="p-4 text-start">S No.</th>
-                                                <th className="p-4 text-start">Address</th>
-                                                <th className="p-4 text-start">Level Name</th>
-                                                <th className="p-4 text-start">Income Type</th>
-                                                <th className="p-4 text-start">Amount (USDT)</th>
-                                                <th className="p-4 text-start">Received</th>
+                                                <th className="p-4 text-center">S No.</th>
+                                                <th className="p-4 text-center">Address</th>
+                                                <th className="p-4 text-center">Level Name</th>
+                                                <th className="p-4 text-center">Income Type</th>
+                                                <th className="p-4 text-center">Amount (USDT)</th>
+                                                <th className="p-4 text-center">Received</th>
                                             </tr>
                                         </thead>
                                         <tbody className="bg-transparent">
@@ -113,25 +113,25 @@ const RecentIncome = memo(
                                                     key={`${index+1}`}
                                                     className="text-start p-4 rounded-lg bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md"
                                                 >
-                                                    <td className="py-2 px-8 text-left">
+                                                    <td className="py-2 px-8 text-center">
                                                         {(currentPage - 1) * itemsPerPage + index + 1}
                                                     </td>
-                                                    <td className="p-4">
+                                                    <td className="p-4 text-center">
                                                         <FrontendIdDisplay
                                                             address={recentIncomes.userAddresses[index]}
                                                             isRegistered={Number(recentIncomes.levelNumbers[index]) > 0}
                                                         />
                                                     </td>
-                                                    <td className="p-4">
+                                                    <td className="p-4 text-center">
                                                             {LEVELS[recentIncomes.levelNumbers[index] - 1]?.name ?? `Level ${recentIncomes.levelNumbers[index]}`}
                                                     </td>
-                                                    <td className="p-4">
+                                                    <td className="p-4 text-center">
                                                         {INCOME_TYPES.find(type => type.id === recentIncomes.incomeTypes[index])?.label ?? 'Unknown'}
                                                     </td>
-                                                    <td className="p-4 text-green-600">
+                                                    <td className="p-4 text-center text-green-600">
                                                         +{Number(formatEther(BigInt(recentIncomes.amounts[index]))).toFixed(2)}
                                                     </td>
-                                                    <td className="p-4 text-gray-500">
+                                                    <td className="p-4 text-center text-gray-500">
                                                         {formatDistanceToNow(
                                                             new Date(Number(recentIncomes.timestamps[index]) * 1000),
                                                             { addSuffix: true }

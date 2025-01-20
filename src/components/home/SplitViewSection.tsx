@@ -141,7 +141,6 @@ const points = [
   { icon: "📈", text: "Stable Career-Building Forever Plan" },
   { icon: "🛡️", text: "Risk-Free and Zero Liquidity Issues" },
   { icon: "⚡", text: "Instant Live Distribution via Blockchain" },
-  { icon: "🚫", text: "Scam-Free Platform" },
   { icon: "💵", text: "Stable Income in USDT" },
   { icon: "📉", text: "No Pump and Dump Market Risks" },
 ];

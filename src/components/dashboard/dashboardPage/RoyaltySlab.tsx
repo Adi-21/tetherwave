@@ -16,14 +16,14 @@ import type { AppDispatch } from '@/store';
 import type { LegProgress } from '@/types/contract';
 import { fetchRoyaltyData } from '@/store/features/royaltySlice';
 import { formatRoyaltyAmount } from '@/lib/utils/contractHelpers';
-import { useRoyaltyCheck } from '@/hooks/useRoyaltyCheck';
+// import { useRoyaltyCheck } from '@/hooks/useRoyaltyCheck';
 
 const RoyaltySlab = memo(() => {
     const dispatch = useDispatch<AppDispatch>();
     const { address } = useAccount();
     
     // Use periodic checking
-    useRoyaltyCheck(address);
+    // useRoyaltyCheck(address);
     
     const isLoading = useSelector((state: RootState) => state.royalty.isLoading);
     const royaltyData = useSelector((state: RootState) => ({
