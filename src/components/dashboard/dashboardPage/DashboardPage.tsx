@@ -257,6 +257,14 @@ const DashboardPage = memo(() => {
         <SocialLinks />
       </div>
 
+      {!packages.isRegistered && (
+        <Registration
+          referrerAddress={registration.referrerAddress}
+          setReferrerAddress={memoizedSetReferrerAddress}
+          handleRegister={() => void handleRegister(registration.referrerAddress.walletAddress)}
+        />
+      )}
+
       <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 text-nowrap w-full">
         <ProfileDetails
           userProfileData={{
@@ -276,14 +284,6 @@ const DashboardPage = memo(() => {
           userId={profile.data.userid}
         />
       </div>
-
-      {!packages.isRegistered && (
-        <Registration
-          referrerAddress={registration.referrerAddress}
-          setReferrerAddress={memoizedSetReferrerAddress}
-          handleRegister={() => void handleRegister(registration.referrerAddress.walletAddress)}
-        />
-      )}
 
       <Packages
         currentLevel={packages.currentLevel}

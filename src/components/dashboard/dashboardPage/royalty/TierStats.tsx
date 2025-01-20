@@ -47,6 +47,10 @@ const TierStats = memo(({ index, royaltyInfo }: TierStatsProps) => {
             })()
     }), [royaltyInfo, index]);
 
+    // console.log('Raw royalty info from contract:', royaltyInfo?.totalEarned[index]);
+    // console.log('Serialized royalty info:', royaltyInfo?.totalEarned);
+    // console.log(`Tier ${index} total earned:`, royaltyInfo?.totalEarned[index]);
+
     return (
         <div className="space-y-4">
             <StatRow

@@ -46,11 +46,11 @@ const ReferralsPage = () => {
           <table className="w-full rounded-lg overflow-hidden">
             <thead>
               <tr className="p-4 bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md">
-                <th className="p-4 text-left">S.No</th>
-                <th className="p-4 text-left">Address</th>
-                <th className="p-4 text-left">Activation Date</th>
-                <th className="p-4 text-left">Level</th>
-                <th className="p-4 text-left">Direct Team</th>
+                <th className="p-4 text-center">S.No</th>
+                <th className="p-4 text-center">Address</th>
+                <th className="p-4 text-center">Activation Date</th>
+                <th className="p-4 text-center">Level</th>
+                <th className="p-4 text-center">Direct Team</th>
               </tr>
             </thead>
             <tbody>
@@ -59,16 +59,16 @@ const ReferralsPage = () => {
                   key={`referral-${index + 1}`}
                   className="text-start p-4 rounded-lg bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md"
                 >
-                  <td className="py-2 px-8 text-left">
+                  <td className="py-2 px-8 text-center">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                  <td className="p-4">
+                  <td className="p-4 text-center">
                     <FrontendIdDisplay
                       address={referral.userAddress}
                       isRegistered={referral.currentLevel > 0}
                     />
                   </td>
-                  <td className="p-4">
+                  <td className="p-4 text-center">
                     {new Date(
                       referral.activationTime * 1000
                     ).toLocaleDateString("en-GB", {
@@ -77,11 +77,11 @@ const ReferralsPage = () => {
                       year: "numeric",
                     })}
                   </td>
-                  <td className="p-4">
+                  <td className="p-4 text-center">
                     {LEVELS[referral.currentLevel - 1]?.name ||
                       `Level ${referral.currentLevel}`}
                   </td>
-                  <td className="p-4">{referral.directReferrals}</td>
+                  <td className="p-4 text-center">{referral.directReferrals}</td>
                 </tr>
               ))}
             </tbody>
