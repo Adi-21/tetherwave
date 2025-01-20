@@ -47,11 +47,23 @@ const ensureString = (value: bigint | string): string => {
     return typeof value === 'bigint' ? value.toString() : value;
 };
 
-const parseTierData = (data: [bigint, bigint, bigint]) => ({
-    strongLeg: data[0].toString(),
-    weakLeg1: data[1].toString(),
-    weakLeg2: data[2].toString()
-});
+const parseTierData = (data: [bigint, bigint, bigint]) => {
+    // Convert all values to numbers for easier comparison
+    const values = data.map(val => Number(val.toString()));
+    
+    // Find the maximum value for strong leg
+    const maxValue = Math.max(...values);
+    const maxIndex = values.indexOf(maxValue);
+    
+    // Remove the max value and use remaining as weak legs
+    const remainingValues = values.filter((_, index) => index !== maxIndex);
+    
+    return {
+        strongLeg: maxValue.toString(),
+        weakLeg1: remainingValues[0].toString(),
+        weakLeg2: remainingValues[1].toString()
+    };
+};
 
 // Async Thunks
 export const fetchRoyaltyData = createAsyncThunk(

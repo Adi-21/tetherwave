@@ -44,11 +44,13 @@ const RoyaltySlab = memo(() => {
         },
         strongLegProgress: (tier: LegProgress) => {
             if (!tier) return 0;
-            return Math.min((Number(tier.strongLeg) / tier.requiredStrong) * 100, 100);
+            const strongLegValue = Number(tier.strongLeg);
+            return Math.min((strongLegValue / tier.requiredStrong) * 100, 100);
         },
         weakLegProgress: (tier: LegProgress) => {
             if (!tier) return 0;
             const weakLegTotal = Number(tier.weakLeg1) + Number(tier.weakLeg2);
+            // Use requiredStrong instead of strongLeg value
             return Math.min((weakLegTotal / tier.requiredStrong) * 100, 100);
         }
     }), []);
