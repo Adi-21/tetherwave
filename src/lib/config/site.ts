@@ -18,8 +18,8 @@ export const siteConfig = {
     },
     contracts: {
         USDT: "0xe6Ad72C499ce626b10De645E25BbAb40C5A34C9f",
-        TetherWave: "0x57546c747F715ad15b83b1fA9c81cA59c997901E",
-        Royalty: "0x5e5A1F17d6E297E0bc60862F6537B3f1e2Be1779",
+        TetherWave: "0xEe0Cbfb7cb321E9Ec7e61a03DF9a4D36180ca714",
+        Royalty: "0x901891784E3316B9f35Dac92a79c2FDC9100d9D5",
     }
 }
 
