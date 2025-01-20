@@ -8,6 +8,7 @@ import type { AppDispatch, RootState } from "@/store";
 import { FrontendIdDisplay } from "./FrontendIdDisplay";
 import Skeleton from "../common/Skeleton";
 import Pagination from "../common/Pagination";
+import { LEVELS } from "@/lib/constants";
 
 const CommunityPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -96,7 +97,8 @@ const CommunityPage = () => {
                       {downlineData.directReferralsCount[index]}
                     </td>
                     <td className="py-2 px-16 text-left">
-                      {downlineData.currentLevels[index]}
+                      {LEVELS[downlineData.currentLevels[index] - 1]?.name ||
+                        `Level ${downlineData.currentLevels[index]}`}
                     </td>
                   </tr>
                 ))}

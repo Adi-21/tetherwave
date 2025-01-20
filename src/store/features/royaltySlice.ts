@@ -82,27 +82,24 @@ export const fetchRoyaltyData = createAsyncThunk(
                 functionName: 'getLevelActivatedCount',
                 args: [address, BigInt(2)]
             }) as [bigint, bigint, bigint];
-            console.log(tier1Data);
 
             const tier2Data = await tetherWave.publicClient.readContract({
                 ...tetherWave,
                 functionName: 'getLevelActivatedCount',
                 args: [address, BigInt(3)]
             }) as [bigint, bigint, bigint];
-            console.log(tier2Data);
 
             const tier3Data = await tetherWave.publicClient.readContract({
                 ...tetherWave,
                 functionName: 'getLevelActivatedCount',
                 args: [address, BigInt(4)]
             }) as [bigint, bigint, bigint];
-            console.log(tier3Data);
+
             const tier4Data = await tetherWave.publicClient.readContract({
                 ...tetherWave,
                 functionName: 'getLevelActivatedCount',
                 args: [address, BigInt(5)]
             }) as [bigint, bigint, bigint];
-            console.log(tier4Data);
 
             // Ensure all BigInt values are converted to strings
             const serializedRoyaltyInfo = {
