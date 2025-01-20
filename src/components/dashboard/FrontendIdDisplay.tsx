@@ -17,7 +17,6 @@ export function FrontendIdDisplay({
 
     if (!isRegistered) {
       setDisplayId(`${address.slice(0, 6)}...${address.slice(-4)}`);
-      // setDisplayId("ID not found");
       return;
     }
 
@@ -25,15 +24,13 @@ export function FrontendIdDisplay({
 
     const fetchId = async () => {
       try {
-        await getFrontendId(address);
+        const userId = await getFrontendId(address);
         if (isMounted) {
-          // setDisplayId(id ? id : "ID not found");
-          setDisplayId(`${address.slice(0, 6)}...${address.slice(-4)}`)
+          setDisplayId(userId || `${address.slice(0, 6)}...${address.slice(-4)}`);
         }
       } catch {
         if (isMounted) {
-          // setDisplayId("ID not found");
-          setDisplayId(`${address.slice(0, 6)}...${address.slice(-4)}`)
+          setDisplayId(`${address.slice(0, 6)}...${address.slice(-4)}`);
         }
       }
     };
@@ -45,5 +42,12 @@ export function FrontendIdDisplay({
     };
   }, [address, isRegistered, getFrontendId]);
 
-  return <span className="text-sm lg:text-base font-semibold">{displayId}</span>;
+  return (
+    <span 
+      className="text-sm lg:text-base font-semibold"
+      title={address}
+    >
+      {displayId}
+    </span>
+  );
 }
