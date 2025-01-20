@@ -380,7 +380,7 @@ export const upgrade = createAsyncThunk(
                 return rejectWithValue(`❌ Insufficient USDT Balance!\n\nRequired: ${formattedRequired} USDT\nYour Balance: ${formattedBalance} USDT`);
             }
 
-            const approveAmount = BigInt(requiredAmount) * BigInt(10 ** 18)
+            const approveAmount = requiredAmount;
             const approveHash = await usdt.walletClient.writeContract({
                 ...usdt,
                 functionName: 'approve',
