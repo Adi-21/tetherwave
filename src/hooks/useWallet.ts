@@ -3,10 +3,15 @@ import { useCallback, useEffect, useState } from 'react'
 import { formatUnits } from 'viem'
 import { siteConfig } from '@/lib/config/site'
 import { useContract } from './useContract'
+import { useDispatch } from 'react-redux'
+import type { AppDispatch } from '@/store'
+import { dashboardAPI } from '@/services/api'
+import { fetchProfileData } from '@/store/features/dashboardSlice'
 
 export function useWallet() {
     const { address, isConnected } = useAccount()
     const chainId = useChainId()
+    const dispatch = useDispatch<AppDispatch>()
     const [isRegistered, setIsRegistered] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
     const { getUserStats } = useContract()
@@ -23,20 +28,48 @@ export function useWallet() {
 
     const checkRegistrationStatus = useCallback(async () => {
         if (!address) {
-            setIsRegistered(false)
-            setIsLoading(false)
-            return
+            setIsRegistered(false);
+            setIsLoading(false);
+            return;
         }
-
+    
         try {
-            const stats = await getUserStats()
-            setIsRegistered((stats?.currentLevel ?? 0) > 0)
+            const stats = await getUserStats();
+            const isBlockchainRegistered = (stats?.currentLevel ?? 0) > 0;
+            setIsRegistered(isBlockchainRegistered);
+    
+            if (isBlockchainRegistered) {
+                // Add retry mechanism for profile fetch
+                let retryCount = 0;
+                const maxRetries = 3;
+                
+                while (retryCount < maxRetries) {
+                    try {
+                        const profile = await dashboardAPI.getUserProfile(address);
+                        if (profile.userid) {
+                            await dispatch(fetchProfileData(address));
+                            break;
+                        }
+                        // If no userid, try registration
+                        await dashboardAPI.register(address);
+                        // Wait longer between retries
+                        await new Promise(resolve => setTimeout(resolve, 5000));
+                        retryCount++;
+                    } catch {
+                        if (retryCount === maxRetries - 1) {
+                            console.error('Failed to fetch/register user profile after retries');
+                        }
+                        await new Promise(resolve => setTimeout(resolve, 5000));
+                        retryCount++;
+                    }
+                }
+            }
         } catch {
-            setIsRegistered(false)
+            setIsRegistered(false);
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }, [address, getUserStats])
+    }, [address, getUserStats, dispatch]);
 
     const formattedBalances = {
         usdt: usdtBalance ? formatUnits(usdtBalance.value, usdtBalance.decimals) : '0',

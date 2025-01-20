@@ -3,6 +3,7 @@ import type { RecentIncomeEvents } from '@/types/contract';
 import { getContracts, publicClient } from '@/lib/constants/contracts';
 import { LEVELS } from '@/lib/constants';
 import { dashboardAPI } from '@/services/api';
+import type { UserStats } from '@/types/contract';
 
 const REGISTRATION_COST = BigInt(11 * 10 ** 18);
 const LEVEL_COSTS = {
@@ -34,6 +35,9 @@ interface ProfileState {
         userid?: string;
         created_at?: string;
         total_referrals?: number;
+        userStats?: UserStats | null;
+        levelIncomes?: bigint[];
+        frontend_id?: string;
     };
 }
 
@@ -110,6 +114,19 @@ export interface DashboardState {
     rankIncome: RankIncomeState;
     recentIncome: RecentIncomeState;
     globalError: string | null;
+}
+
+export interface ProfileData {
+    currentLevel: number;
+    levelName: string;
+    directSponsor: string;
+    matrixSponsor: string;
+    userid?: string;
+    created_at?: string;
+    total_referrals?: number;
+    userStats?: UserStats | null;
+    levelIncomes?: bigint[];
+    frontend_id?: string;
 }
 
 const initialState: DashboardState = {
@@ -194,27 +211,24 @@ export const initializeReferral = createAsyncThunk(
     'dashboard/initializeReferral',
     async (_, { rejectWithValue, dispatch }) => {
         try {
-            // Check for query parameter format
             const params = new URLSearchParams(window.location.search);
-            const queryRefId = params.get("ref");
-
-            // Check for path format
-            const pathParts = window.location.pathname.split('/');
-            const pathRefId = pathParts[pathParts.length - 1];
-
-            const refId = queryRefId || (pathParts[1] === 'referral' ? pathRefId : null);
+            const refId = params.get("ref");
 
             if (refId) {
-                localStorage.setItem("tetherwave_refId", refId);
                 const data = await dashboardAPI.getReferralInfo(refId);
+                // Store both refId and wallet address
+                localStorage.setItem("tetherwave_refId", refId);
+                localStorage.setItem("tetherwave_refWallet", data.referring_wallet);
+                
                 dispatch(setReferrerAddress({
                     userId: refId,
                     walletAddress: data.referring_wallet
                 }));
                 return refId;
             }
-            return rejectWithValue('Failed to initialize referral');
-        } catch {
+            return rejectWithValue('No referral ID found');
+        } catch (error) {
+            console.error('Failed to initialize referral:', error);
             return rejectWithValue('Failed to initialize referral');
         }
     }
@@ -250,33 +264,57 @@ export const fetchProfileData = createAsyncThunk(
         try {
             const { tetherWave } = getContracts();
 
+            // First check blockchain registration
             const userStats = await tetherWave.publicClient.readContract({
                 ...tetherWave,
                 functionName: 'getUserStats',
                 args: [address]
             }) as [boolean, number, bigint, bigint, bigint, number, boolean];
 
-            const matrixPosition = await tetherWave.publicClient.readContract({
+            const sponsors = await tetherWave.publicClient.readContract({
                 ...tetherWave,
                 functionName: 'getMatrixPosition',
                 args: [address]
             }) as [string, string];
 
-            const currentLevel = Number(userStats[0]);
-            const levelName = LEVELS[currentLevel - 1]?.name || 'Not Registered';
+            const isBlockchainRegistered = userStats[0]; // Check if registered
 
-            await new Promise(resolve => setTimeout(resolve, 5000));
-            const data = await dashboardAPI.getUserProfile(address);
+            try {
+                // Try to fetch backend profile
+                const data = await dashboardAPI.getUserProfile(address);
+                
+                // If blockchain registered but no userId, register in backend
+                if (isBlockchainRegistered && !data.userid) {
+                    await dashboardAPI.register(address);
+                    // Fetch updated profile after backend registration
+                    const updatedData = await dashboardAPI.getUserProfile(address);
+                    return {
+                        ...updatedData,
+                        currentLevel: Number(userStats[0]),
+                        levelName: LEVELS[Number(userStats[0]) - 1]?.name || 'Not Registered'
+                    };
+                }
 
-            return {
-                currentLevel,
-                levelName,
-                directSponsor: matrixPosition[0],
-                matrixSponsor: matrixPosition[1],
-                userid: data.userid,
-                created_at: data.created_at,
-                total_referrals: data.total_referrals,
-            };
+                return {
+                    ...data,
+                    currentLevel: Number(userStats[0]),
+                    levelName: LEVELS[Number(userStats[0]) - 1]?.name || 'Not Registered',
+                    directSponsor: sponsors[0],
+                    matrixSponsor: sponsors[1]
+                };
+            } catch {
+                // If backend fetch fails and blockchain registered, register in backend
+                if (isBlockchainRegistered) {
+                    await dashboardAPI.register(address);
+                    const newData = await dashboardAPI.getUserProfile(address);
+                    return {
+                        ...newData,
+                        currentLevel: Number(userStats[0]),
+                        levelName: LEVELS[Number(userStats[0]) - 1]?.name || 'Not Registered'
+                    };
+                }
+                return rejectWithValue('Failed to fetch profile data');
+            }
         } catch {
             return rejectWithValue('Failed to fetch profile data');
         }
@@ -299,50 +337,96 @@ export const register = createAsyncThunk(
         balance: string;
     }, { rejectWithValue, dispatch }) => {
         try {
+            console.log('Starting registration with:', {
+                referrerAddress,
+                userAddress,
+                balance
+            });
+
             const { tetherWave, usdt } = getContracts();
-
             const currentBalance = BigInt(Number.parseFloat(balance) * 10 ** 18);
+            const requiredAmount = REGISTRATION_COST;
+            const formattedBalance = Number(currentBalance) / 10 ** 18;
+            const formattedRequired = Number(requiredAmount) / 10 ** 18;
 
-            if (currentBalance < REGISTRATION_COST) {
-                throw new Error(`Insufficient USDT balance for registration. You need 50 USDT but have ${balance} USDT.`);
+            if (currentBalance < requiredAmount) {
+                throw new Error(`❌ Insufficient USDT Balance!\n\nRequired: ${formattedRequired} USDT\nYour Balance: ${formattedBalance} USDT`);
             }
 
-            const approveAmount = BigInt(11 * 10 ** 18);
-            const approveHash = await usdt.walletClient.writeContract({
-                ...usdt,
-                functionName: 'approve',
-                args: [tetherWave.address, approveAmount],
-                account: userAddress as `0x${string}`
-            });
-            await publicClient.waitForTransactionReceipt({ hash: approveHash })
+            // Handle blockchain registration
+            try {
+                const approveAmount = BigInt(11 * 10 ** 18);
+                console.log('Approving USDT spend:', approveAmount.toString());
+                
+                const approveHash = await usdt.walletClient.writeContract({
+                    ...usdt,
+                    functionName: 'approve',
+                    args: [tetherWave.address, approveAmount],
+                    account: userAddress as `0x${string}`
+                });
+                console.log('Approval hash:', approveHash);
+                
+                const approvalReceipt = await publicClient.waitForTransactionReceipt({ hash: approveHash });
+                console.log('Approval receipt:', approvalReceipt);
 
-            const { request } = await tetherWave.publicClient.simulateContract({
-                ...tetherWave,
-                functionName: 'register',
-                args: [referrerAddress.walletAddress],
-                account: userAddress as `0x${string}`
-            });
+                console.log('Simulating registration with referrer:', referrerAddress.walletAddress);
+                const { request } = await tetherWave.publicClient.simulateContract({
+                    ...tetherWave,
+                    functionName: 'register',
+                    args: [referrerAddress.walletAddress],
+                    account: userAddress as `0x${string}`
+                });
 
-            const hash = await tetherWave.walletClient.writeContract(request);
-            const receipt = await tetherWave.publicClient.waitForTransactionReceipt({ hash });
+                const hash = await tetherWave.walletClient.writeContract(request);
+                console.log('Registration hash:', hash);
+                
+                const receipt = await tetherWave.publicClient.waitForTransactionReceipt({ hash });
+                console.log('Registration receipt:', receipt);
 
-            if (receipt.status === 'success') {
-                try {
-                    await new Promise(resolve => setTimeout(resolve, 10000));
-                    await dashboardAPI.registerWithReferral(userAddress, referrerAddress.userId);
+                if (receipt.status === 'success') {
+                    try {
+                        // Wait for blockchain confirmation
+                        await new Promise(resolve => setTimeout(resolve, 15000));
+                        
+                        // Register in backend with referral in a single call
+                        if (referrerAddress.userId) {
+                            await dashboardAPI.registerWithReferral(userAddress, referrerAddress.userId);
+                        } else {
+                            await dashboardAPI.register(userAddress);
+                        }
 
-                    localStorage.removeItem("tetherwave_refId");
-                    await dispatch(fetchProfileData(userAddress));
-                    await dispatch(fetchPackagesData(userAddress));
+                        // Wait and verify registration
+                        let retryCount = 0;
+                        const maxRetries = 3;
+                        
+                        while (retryCount < maxRetries) {
+                            const profile = await dashboardAPI.getUserProfile(userAddress);
+                            if (profile.userid) {
+                                await dispatch(fetchProfileData(userAddress));
+                                localStorage.removeItem("tetherwave_refId");
+                                localStorage.removeItem("tetherwave_refWallet");
+                                break;
+                            }
+                            await new Promise(resolve => setTimeout(resolve, 5000));
+                            retryCount++;
+                        }
 
-                    return { success: true, transactionHash: hash };
-                } catch {
-                    throw new Error('Backend registration failed');
+                        await dispatch(fetchPackagesData(userAddress));
+                        return { success: true, transactionHash: hash };
+                    } catch (error) {
+                        console.error('Backend registration error:', error);
+                        throw new Error('Backend registration failed');
+                    }
+                } else {
+                    console.error('Registration transaction failed:', receipt);
+                    throw new Error('Registration transaction failed');
                 }
+            } catch (error) {
+                console.error('Blockchain registration error:', error);
+                throw error;
             }
-
-            return rejectWithValue('Blockchain registration failed');
         } catch (error) {
+            console.error('Registration error:', error);
             if (error instanceof Error) {
                 return rejectWithValue(error.message);
             }
@@ -612,7 +696,11 @@ const dashboardSlice = createSlice({
             })
             .addCase(fetchProfileData.fulfilled, (state, action) => {
                 state.profile.isLoading = false;
-                state.profile.data = action.payload;
+                state.profile.data = {
+                    ...action.payload,
+                    currentLevel: Number(action.payload.currentLevel),
+                    levelName: LEVELS[Number(action.payload.currentLevel) - 1]?.name || 'Not Registered'
+                } as ProfileData;
             })
             .addCase(fetchProfileData.rejected, (state, action) => {
                 state.profile.isLoading = false;
