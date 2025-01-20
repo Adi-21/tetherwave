@@ -58,6 +58,7 @@ const RecentIncome = memo(
             dispatch(setCurrentPage(1));
         }, [dispatch]);
 
+
         return (
             <div className="mt-4 lg:mt-8 w-full">
                 <div className="rounded-lg drop-shadow-lg shadow bg-gradient">
@@ -107,7 +108,7 @@ const RecentIncome = memo(
                                             </tr>
                                         </thead>
                                         <tbody className="bg-transparent">
-                                            {recentIncomes.userAddresses.map((address, index) => (
+                                            {recentIncomes.userAddresses.map((_, index) => (
                                                 <tr
                                                     key={`${index+1}`}
                                                     className="text-start p-4 rounded-lg bg-white/70 dark:bg-black/80 drop-shadow-lg shadow-md"
@@ -117,29 +118,22 @@ const RecentIncome = memo(
                                                     </td>
                                                     <td className="p-4">
                                                         <FrontendIdDisplay
-                                                            address={address}
-                                                            isRegistered={
-                                                                Number(recentIncomes.levelNumbers[index]) > 0
-                                                            }
+                                                            address={recentIncomes.userAddresses[index]}
+                                                            isRegistered={Number(recentIncomes.levelNumbers[index]) > 0}
                                                         />
                                                     </td>
                                                     <td className="p-4">
-                                                        {LEVELS[recentIncomes.levelNumbers[index] - 1]?.name ?? `Level ${recentIncomes.levelNumbers[index]}`}
+                                                            {LEVELS[recentIncomes.levelNumbers[index] - 1]?.name ?? `Level ${recentIncomes.levelNumbers[index]}`}
                                                     </td>
                                                     <td className="p-4">
                                                         {INCOME_TYPES.find(type => type.id === recentIncomes.incomeTypes[index])?.label ?? 'Unknown'}
                                                     </td>
-                                                    <td className="p-4  text-green-600">
-                                                        +
-                                                        {Number(
-                                                            formatEther(BigInt(recentIncomes.amounts[index]))
-                                                        ).toFixed(2)}
+                                                    <td className="p-4 text-green-600">
+                                                        +{Number(formatEther(BigInt(recentIncomes.amounts[index]))).toFixed(2)}
                                                     </td>
                                                     <td className="p-4 text-gray-500">
                                                         {formatDistanceToNow(
-                                                            new Date(
-                                                                Number(recentIncomes.timestamps[index]) * 1000
-                                                            ),
+                                                            new Date(Number(recentIncomes.timestamps[index]) * 1000),
                                                             { addSuffix: true }
                                                         )}
                                                     </td>

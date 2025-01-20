@@ -455,7 +455,7 @@ export const fetchRecentIncomeData = createAsyncThunk(
         address,
         page,
         itemsPerPage,
-        filterTypes = []
+        filterTypes = [],
     }: {
         address: string;
         page: number;
@@ -464,22 +464,38 @@ export const fetchRecentIncomeData = createAsyncThunk(
     }, { rejectWithValue }) => {
         try {
             const { tetherWave } = getContracts();
-            const startIndex = (page - 1) * itemsPerPage;
-
+            
+            // Fetch all data first
             const data = await tetherWave.publicClient.readContract({
                 ...tetherWave,
                 functionName: 'getRecentIncomeEventsPaginated',
-                args: [address as `0x${string}`, BigInt(startIndex), BigInt(itemsPerPage), filterTypes]
+                args: [address as `0x${string}`, BigInt(0), BigInt(1000), filterTypes] // Fetch more data
             }) as [string[], number[], bigint[], number[], number[], bigint];
 
             const [userAddresses, levelNumbers, amounts, timestamps, incomeTypes, totalCount] = data;
+            
+            // Sort all entries by timestamp (newest first)
+            const entries = userAddresses.map((_, i) => ({
+                address: userAddresses[i],
+                levelNumber: levelNumbers[i],
+                amount: amounts[i].toString(),
+                timestamp: timestamps[i],
+                incomeType: incomeTypes[i]
+            }));
+
+            entries.sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
+
+            // Calculate pagination slice
+            const start = (page - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const paginatedEntries = entries.slice(start, end);
 
             return {
-                userAddresses,
-                levelNumbers,
-                amounts: amounts.map(amount => amount.toString()),
-                timestamps,
-                incomeTypes: incomeTypes.map(Number),
+                userAddresses: paginatedEntries.map(e => e.address),
+                levelNumbers: paginatedEntries.map(e => e.levelNumber),
+                amounts: paginatedEntries.map(e => e.amount),
+                timestamps: paginatedEntries.map(e => e.timestamp),
+                incomeTypes: paginatedEntries.map(e => Number(e.incomeType)),
                 totalCount: Number(totalCount)
             };
         } catch {
