@@ -135,46 +135,12 @@ export const fetchRoyaltyData = createAsyncThunk(
 export const registerTier = createAsyncThunk(
     'royalty/register',
     async (address: Address) => {
-        const { royalty } = getContracts();
-        const deployerPrivateKey = `0x${process.env.NEXT_PUBLIC_CONTRACT_DEPLOYER_PRIVATE_KEY?.replace('0x', '')}`;
-        const deployerAccount = privateKeyToAccount(deployerPrivateKey as `0x${string}`);
-        const deployerWalletClient = createWalletClient({
-            account: deployerAccount,
-            chain: opBNBTestnet,
-            transport: http()
-        });
-
-        const hash = await deployerWalletClient.writeContract({
-            address: royalty.address,
-            abi: royalty.abi,
-            functionName: 'registerQualifiedTiers',
-            args: [address],
-            maxFeePerGas: BigInt(5000000000),
-            maxPriorityFeePerGas: BigInt(2500000000)
-        });
-
-        return hash;
-    }
-);
-
-export const distributeTierRoyalty = createAsyncThunk(
-    'royalty/distribute',
-    async (tier: number, { rejectWithValue }) => {
         try {
             const { royalty } = getContracts();
-            
-            const nextDistTime = await royalty.publicClient.readContract({
-                ...royalty,
-                functionName: 'getNextDistributionTime',
-                args: [tier]
-            }) as bigint;
-
-            const currentTime = BigInt(Math.floor(Date.now() / 1000));
-            if (currentTime < nextDistTime) {
-                return rejectWithValue('Distribution time not reached');
-            }
-
             const deployerPrivateKey = `0x${process.env.NEXT_PUBLIC_CONTRACT_DEPLOYER_PRIVATE_KEY?.replace('0x', '')}`;
+            if (!deployerPrivateKey) {
+                throw new Error('Configuration error');
+            }
             const deployerAccount = privateKeyToAccount(deployerPrivateKey as `0x${string}`);
             const deployerWalletClient = createWalletClient({
                 account: deployerAccount,
@@ -190,6 +156,58 @@ export const distributeTierRoyalty = createAsyncThunk(
             const hash = await deployerWalletClient.writeContract({
                 address: royalty.address,
                 abi: royalty.abi,
+                functionName: 'registerQualifiedTiers',
+                args: [address],
+                nonce: latestNonce,
+                maxFeePerGas: BigInt(5000000000),
+                maxPriorityFeePerGas: BigInt(2500000000)
+            });
+
+            if (hash) {
+                await publicClient.waitForTransactionReceipt({ hash });
+                return true;
+            }
+            return false;
+        } catch {
+            return false;
+        }
+    }
+);
+
+export const distributeTierRoyalty = createAsyncThunk(
+    'royalty/distribute',
+    async (tier: number, { rejectWithValue }) => {
+        try {
+            const { royalty } = getContracts();
+
+            const deployerPrivateKey = `0x${process.env.NEXT_PUBLIC_CONTRACT_DEPLOYER_PRIVATE_KEY?.replace('0x', '')}`;
+            const deployerAccount = privateKeyToAccount(deployerPrivateKey as `0x${string}`);
+
+            const nextDistTime = await royalty.publicClient.readContract({
+                ...royalty,
+                functionName: 'getNextDistributionTime',
+                args: [tier]
+            }) as bigint;
+
+            const currentTime = BigInt(Math.floor(Date.now() / 1000));
+            if (currentTime < nextDistTime) {
+                return rejectWithValue('Distribution time not reached');
+            }
+
+            const latestNonce = await publicClient.getTransactionCount({
+                address: deployerAccount.address,
+                blockTag: 'latest'
+            });
+
+            const deployerWalletClient = createWalletClient({
+                account: deployerAccount,
+                chain: opBNBTestnet,
+                transport: http()
+            });
+
+            const hash = await deployerWalletClient.writeContract({
+                address: royalty.address,
+                abi: royalty.abi,
                 functionName: 'distributeTierRoyalties',
                 args: [tier],
                 account: deployerAccount,
@@ -197,11 +215,12 @@ export const distributeTierRoyalty = createAsyncThunk(
                 maxFeePerGas: BigInt(5000000000),
                 maxPriorityFeePerGas: BigInt(2500000000)
             });
-
-            await publicClient.waitForTransactionReceipt({ hash });
-            
-            return hash;
-        } catch  {
+            if (hash) {
+                const receipt = await publicClient.waitForTransactionReceipt({ hash });
+                return receipt.status === 'success';
+            }
+            return false;
+        } catch {
             return rejectWithValue('Distribution failed. Please try again later.');
         }
     }
