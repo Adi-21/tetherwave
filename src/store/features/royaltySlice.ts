@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { getContracts } from '@/lib/constants/contracts';
+import { getContracts, publicClient } from '@/lib/constants/contracts';
 import type { Address } from 'viem';
 import type { LegProgress } from '@/types/contract';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -59,7 +59,7 @@ export const fetchRoyaltyData = createAsyncThunk(
     async (address: Address) => {
         try {
             const { royalty, tetherWave } = getContracts();
-            
+
             const qualifiedTiers = await royalty.publicClient.readContract({
                 ...royalty,
                 functionName: 'checkQualification',
@@ -159,37 +159,51 @@ export const registerTier = createAsyncThunk(
 
 export const distributeTierRoyalty = createAsyncThunk(
     'royalty/distribute',
-    async (tier: number) => {
-        const { royalty } = getContracts();
-        const deployerPrivateKey = `0x${process.env.NEXT_PUBLIC_CONTRACT_DEPLOYER_PRIVATE_KEY?.replace('0x', '')}`;
-        const deployerAccount = privateKeyToAccount(deployerPrivateKey as `0x${string}`);
-        const deployerWalletClient = createWalletClient({
-            account: deployerAccount,
-            chain: opBNBTestnet,
-            transport: http()
-        });
+    async (tier: number, { rejectWithValue }) => {
+        try {
+            const { royalty } = getContracts();
+            
+            const nextDistTime = await royalty.publicClient.readContract({
+                ...royalty,
+                functionName: 'getNextDistributionTime',
+                args: [tier]
+            }) as bigint;
 
-        const nextDistTime = await royalty.publicClient.readContract({
-            ...royalty,
-            functionName: 'getNextDistributionTime',
-            args: [tier]
-        }) as bigint;
+            const currentTime = BigInt(Math.floor(Date.now() / 1000));
+            if (currentTime < nextDistTime) {
+                return rejectWithValue('Distribution time not reached');
+            }
 
-        const currentTime = BigInt(Math.floor(Date.now() / 1000));
-        if (currentTime < nextDistTime) {
-            throw new Error('Distribution time not reached');
+            const deployerPrivateKey = `0x${process.env.NEXT_PUBLIC_CONTRACT_DEPLOYER_PRIVATE_KEY?.replace('0x', '')}`;
+            const deployerAccount = privateKeyToAccount(deployerPrivateKey as `0x${string}`);
+            const deployerWalletClient = createWalletClient({
+                account: deployerAccount,
+                chain: opBNBTestnet,
+                transport: http()
+            });
+
+            const latestNonce = await publicClient.getTransactionCount({
+                address: deployerAccount.address,
+                blockTag: 'latest'
+            });
+
+            const hash = await deployerWalletClient.writeContract({
+                address: royalty.address,
+                abi: royalty.abi,
+                functionName: 'distributeTierRoyalties',
+                args: [tier],
+                account: deployerAccount,
+                nonce: latestNonce,
+                maxFeePerGas: BigInt(5000000000),
+                maxPriorityFeePerGas: BigInt(2500000000)
+            });
+
+            await publicClient.waitForTransactionReceipt({ hash });
+            
+            return hash;
+        } catch  {
+            return rejectWithValue('Distribution failed. Please try again later.');
         }
-
-        const hash = await deployerWalletClient.writeContract({
-            address: royalty.address,
-            abi: royalty.abi,
-            functionName: 'distributeTierRoyalties',
-            args: [tier],
-            maxFeePerGas: BigInt(5000000000),
-            maxPriorityFeePerGas: BigInt(2500000000)
-        });
-
-        return hash;
     }
 );
 

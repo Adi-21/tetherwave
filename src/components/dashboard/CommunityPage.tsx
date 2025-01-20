@@ -93,10 +93,10 @@ const CommunityPage = () => {
                       />
                     </td>
                     <td className="py-2 px-16 text-left">
-                      {downlineData.directReferralsCount[0]}
+                      {downlineData.directReferralsCount[index]}
                     </td>
                     <td className="py-2 px-16 text-left">
-                      {downlineData.currentLevels[0]}
+                      {downlineData.currentLevels[index]}
                     </td>
                   </tr>
                 ))}

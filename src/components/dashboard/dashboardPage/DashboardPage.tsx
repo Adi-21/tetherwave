@@ -111,14 +111,20 @@ const DashboardPage = memo(() => {
       const errorMessage = error instanceof Error ? error.message :
         typeof error === 'object' && error && 'message' in error ? String(error.message) :
           'Registration failed';
-      toast.error(errorMessage, {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: '#FEE2E2',
-          color: '#DC2626',
-          border: '1px solid #DC2626'
-        }
+          toast.error(errorMessage, {
+            duration: 5000,
+            position: 'top-center',
+            style: {
+              background: '#FEE2E2',
+              color: '#DC2626',
+              border: '1px solid #DC2626',
+              whiteSpace: 'pre-line',
+              textAlign: 'center',
+              padding: '8px',
+              fontSize: '14px',
+              maxWidth: '300px',
+              fontWeight: 'semibold'
+            }
       });
     }
   }, [address, balances.usdt, dispatch, refetchBalance, registration.referrerAddress.userId]);
@@ -165,7 +171,8 @@ const DashboardPage = memo(() => {
       toast.dismiss();
 
       const errorMessage = error instanceof Error ? error.message :
-        typeof error === 'string' ? error : 'Upgrade failed';
+      typeof error === 'object' && error && 'message' in error ? String(error.message) :
+      'Upgrade failed';
 
       toast.error(errorMessage, {
         duration: 5000,
@@ -176,8 +183,10 @@ const DashboardPage = memo(() => {
           border: '1px solid #DC2626',
           whiteSpace: 'pre-line',
           textAlign: 'center',
-          padding: '1rem',
-          fontWeight: 'bold'
+          padding: '8px',
+          fontSize: '14px',
+          maxWidth: '300px',
+          fontWeight: 'semibold'
         }
       });
     }
