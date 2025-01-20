@@ -13,28 +13,48 @@ interface RegistrationProps {
   handleRegister: () => void;
 }
 
-const Registration = memo(({ 
-  referrerAddress, 
-  setReferrerAddress, 
-  handleRegister 
+const Registration = memo(({
+  referrerAddress,
+  setReferrerAddress,
+  handleRegister
 }: RegistrationProps) => {
+
   useEffect(() => {
-    const storedRefId = localStorage.getItem("tetherwave_refId");
-    if (storedRefId && !referrerAddress.walletAddress) {
+    if (!referrerAddress.walletAddress) {
+      const storedRefId = localStorage.getItem("tetherwave_refId");
+      const storedRefWallet = localStorage.getItem("tetherwave_refWallet");
+
+      if (storedRefId && storedRefWallet) {
+        setReferrerAddress({
+          userId: storedRefId,
+          walletAddress: storedRefWallet
+        });
+      } else if (storedRefId) {
         dashboardAPI.getReferralInfo(storedRefId)
-            .then(data => {
-                if (data.referring_wallet) {
-                    setReferrerAddress({
-                        userId: storedRefId,
-                        walletAddress: data.referring_wallet
-                    });
-                }
-            })
-            .catch((error: unknown) => {
-                throw new Error('Failed to fetch referrer info:', error as Error);
-            });
+          .then(data => {
+            if (data.referring_wallet) {
+              localStorage.setItem("tetherwave_refWallet", data.referring_wallet);
+              setReferrerAddress({
+                userId: storedRefId,
+                walletAddress: data.referring_wallet
+              });
+            }
+          })
+          .catch((error: unknown) => {
+            console.error('Failed to fetch referrer info:', error);
+          });
+      }
     }
-  }, [referrerAddress.walletAddress, setReferrerAddress]);
+
+    // Cleanup function
+    return () => {
+      // Only remove if registration is successful
+      if (window.location.pathname !== '/dashboard') {
+        localStorage.removeItem("tetherwave_refId");
+        localStorage.removeItem("tetherwave_refWallet");
+      }
+    };
+  }, [setReferrerAddress, referrerAddress.walletAddress]);
   return (
     <div className="mt-4 lg:mt-8 w-full">
       <div className="p-4 lg:p-6 rounded-lg drop-shadow-lg shadow bg-gradient">

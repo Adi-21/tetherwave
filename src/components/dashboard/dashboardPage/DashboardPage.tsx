@@ -14,13 +14,14 @@ import type { AppDispatch, RootState } from '@/store';
 import { setReferrerAddress, register, upgrade, fetchRecentIncomeData, fetchRankIncomeData, fetchProfileData, fetchAllIncomesData, fetchPackagesData, fetchWalletData, initializeReferral, fetchReferrerData } from '@/store/features/dashboardSlice';
 import { toast } from 'react-hot-toast';
 import { useAccount } from 'wagmi';
-import { truncateAddress } from "@/lib/utils/format";
 import type { DashboardState } from '@/store/features/dashboardSlice';
 import { useUSDTBalance } from '@/hooks/useUSDTBalance';
+import { useWallet } from '@/hooks/useWallet';
 
 const DashboardPage = memo(() => {
   const dispatch = useDispatch<AppDispatch>();
   const { address } = useAccount();
+  const { isRegistered } = useWallet();
   const { balance: usdtBalance, formatted: usdtFormatted, refetch: refetchBalance } = useUSDTBalance(address as `0x${string}`);
 
   const balances = {
@@ -32,6 +33,7 @@ const DashboardPage = memo(() => {
       dispatch(initializeReferral())
         .then(() => dispatch(fetchReferrerData(address)))
         .catch((error: unknown) => {
+          console.error('Failed to initialize referral:', error);
           throw new Error('Failed to initialize referral:', error as Error);
         });
     }
@@ -56,6 +58,16 @@ const DashboardPage = memo(() => {
       });
     }
   }, [dispatch, address]);
+
+  useEffect(() => {
+    if (address && isRegistered) {
+      void dispatch(fetchProfileData(address));
+    }
+  }, [address, isRegistered, dispatch]);
+
+  const memoizedSetReferrerAddress = useCallback((address: { userId: string; walletAddress: string }) => {
+    dispatch(setReferrerAddress(address));
+  }, [dispatch]);
 
   const {
     profile,
@@ -95,8 +107,10 @@ const DashboardPage = memo(() => {
 
       await new Promise(resolve => setTimeout(resolve, 5000));
       await refetchBalance();
+      
+      await dispatch(fetchProfileData(address));
+      
       toast.dismiss(processingToast);
-
       toast.success("Registration successful!", {
         duration: 5000,
         position: 'top-center',
@@ -108,11 +122,25 @@ const DashboardPage = memo(() => {
       });
     } catch (error: unknown) {
       toast.dismiss();
-      const errorMessage = error instanceof Error ? error.message :
-        typeof error === 'object' && error && 'message' in error ? String(error.message) :
-          'Registration failed';
-          toast.error(errorMessage, {
-            duration: 5000,
+      let errorMessage = 'Registration failed';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error && 'message' in error) {
+        errorMessage = String(error.message);
+      }
+
+      // Format specific error messages
+      if (errorMessage.includes('❌')) {
+        const [title, ...details] = errorMessage.split('\n\n');
+        
+        toast.error(
+          <div>
+            <div className="font-bold mb-2">{title}</div>
+            <div>{details.join('\n')}</div>
+          </div>,
+          {
+            duration: 7000,
             position: 'top-center',
             style: {
               background: '#FEE2E2',
@@ -120,14 +148,27 @@ const DashboardPage = memo(() => {
               border: '1px solid #DC2626',
               whiteSpace: 'pre-line',
               textAlign: 'center',
-              padding: '8px',
+              padding: '16px',
               fontSize: '14px',
               maxWidth: '300px',
-              fontWeight: 'semibold'
+              fontWeight: 'semibold',
+              lineHeight: '1.5'
             }
-      });
+          }
+        );
+      } else {
+        toast.error(errorMessage, {
+          duration: 5000,
+          position: 'top-center',
+          style: {
+            background: '#FEE2E2',
+            color: '#DC2626',
+            border: '1px solid #DC2626'
+          }
+        });
+      }
     }
-  }, [address, balances.usdt, dispatch, refetchBalance, registration.referrerAddress.userId]);
+  }, [address, balances.usdt, dispatch, registration.referrerAddress.userId, refetchBalance]);
 
   const handleUpgrade = useCallback(async (targetLevel: number) => {
     if (!address || !usdtBalance) return;
@@ -208,8 +249,8 @@ const DashboardPage = memo(() => {
           isLoading={profile.isLoading}
           currentLevel={profile.data.currentLevel}
           levelName={profile.data.levelName}
-          directSponsorId={truncateAddress(profile.data.directSponsor)}
-          matrixSponsorId={truncateAddress(profile.data.matrixSponsor)}
+          directSponsorId={profile.data.directSponsor}
+          matrixSponsorId={profile.data.matrixSponsor}
         />
         <WalletDetails
           address={address || '0x'}
@@ -221,7 +262,7 @@ const DashboardPage = memo(() => {
       {!packages.isRegistered && (
         <Registration
           referrerAddress={registration.referrerAddress}
-          setReferrerAddress={(address: { userId: string; walletAddress: string }) => dispatch(setReferrerAddress(address))}
+          setReferrerAddress={memoizedSetReferrerAddress}
           handleRegister={() => void handleRegister(registration.referrerAddress.walletAddress)}
         />
       )}
