@@ -105,10 +105,20 @@ const DashboardPage = memo(() => {
         position: 'top-center'
       });
 
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      await refetchBalance();
+      // Add multiple retries for profile data fetch
+      let retryCount = 0;
+      const maxRetries = 5;
       
-      await dispatch(fetchProfileData(address));
+      while (retryCount < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        await refetchBalance();
+        const profileResult = await dispatch(fetchProfileData(address)).unwrap();
+        
+        if (profileResult?.userid) {
+          break;
+        }
+        retryCount++;
+      }
       
       toast.dismiss(processingToast);
       toast.success("Registration successful!", {
@@ -120,6 +130,14 @@ const DashboardPage = memo(() => {
           border: '1px solid #166534'
         }
       });
+
+      // Force a final refresh of all data
+      await Promise.all([
+        dispatch(fetchProfileData(address)),
+        dispatch(fetchPackagesData(address)),
+        dispatch(fetchWalletData(address))
+      ]);
+
     } catch (error: unknown) {
       toast.dismiss();
       let errorMessage = 'Registration failed';
