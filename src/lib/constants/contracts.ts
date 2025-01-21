@@ -55,7 +55,7 @@ export const opBNB: Chain = {
 }
 
 export const publicClient = createPublicClient({
-    chain: opBNBTestnet,
+    chain: opBNB,
     transport: http()
 });
 
@@ -63,7 +63,7 @@ export const getContracts = () => {
     if (!window.ethereum) throw new Error('No ethereum provider found');
 
     const walletClient = createWalletClient({
-        chain: opBNBTestnet,
+        chain: opBNB,
         transport: custom(window.ethereum)
     });
 
