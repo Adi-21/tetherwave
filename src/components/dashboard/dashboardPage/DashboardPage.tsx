@@ -108,18 +108,18 @@ const DashboardPage = memo(() => {
       // Add multiple retries for profile data fetch
       let retryCount = 0;
       const maxRetries = 5;
-      
+
       while (retryCount < maxRetries) {
         await new Promise(resolve => setTimeout(resolve, 3000));
         await refetchBalance();
         const profileResult = await dispatch(fetchProfileData(address)).unwrap();
-        
+
         if (profileResult?.userid) {
           break;
         }
         retryCount++;
       }
-      
+
       toast.dismiss(processingToast);
       toast.success("Registration successful!", {
         duration: 5000,
@@ -141,7 +141,7 @@ const DashboardPage = memo(() => {
     } catch (error: unknown) {
       toast.dismiss();
       let errorMessage = 'Registration failed';
-      
+
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === 'object' && error && 'message' in error) {
@@ -151,7 +151,7 @@ const DashboardPage = memo(() => {
       // Format specific error messages
       if (errorMessage.includes('❌')) {
         const [title, ...details] = errorMessage.split('\n\n');
-        
+
         toast.error(
           <div>
             <div className="font-bold mb-2">{title}</div>
@@ -230,8 +230,8 @@ const DashboardPage = memo(() => {
       toast.dismiss();
 
       const errorMessage = error instanceof Error ? error.message :
-      typeof error === 'object' && error && 'message' in error ? String(error.message) :
-      'Upgrade failed';
+        typeof error === 'object' && error && 'message' in error ? String(error.message) :
+          'Upgrade failed';
 
       toast.error(errorMessage, {
         duration: 5000,
