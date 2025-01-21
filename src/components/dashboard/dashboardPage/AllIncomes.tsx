@@ -43,7 +43,7 @@ const AllIncomes = memo(({
     <div className="rounded-lg drop-shadow-lg shadow bg-gradient">
       <div className="flex items-center space-x-2 text-lg font-bold px-4 lg:px-6 pt-4 pb-2 lg:pt-6">
         <LuWallet className="h-5 w-5" />
-        <span>Income Overview</span>
+        <span>Reward Overview</span>
       </div>
       <div className="p-4 lg:px-6 lg:pb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {isLoading ? (
@@ -59,27 +59,27 @@ const AllIncomes = memo(({
         ) : (
           <>
             <IncomeCard 
-              title="Total Income" 
+              title="Total Reward" 
               value={userStats?.totalEarnings ? formatBigIntToUSDT(BigInt(userStats.totalEarnings)) : "0"} 
               isAmount 
             />
             <IncomeCard 
-              title="Referral Income" 
+              title="Referral Reward" 
               value={userStats?.directCommissionEarned ? formatBigIntToUSDT(BigInt(userStats.directCommissionEarned)) : "0"} 
               isAmount 
             />
             <IncomeCard 
-              title="Upgrade Referral Income" 
+              title="Upgrade Referral Reward" 
               value={upgradeReferralIncome ? formatBigIntToUSDT(upgradeReferralIncome) : "0"} 
               isAmount 
             />
             <IncomeCard 
-              title="Level Income" 
+              title="Level Reward" 
               value={userStats?.levelIncomeEarned ? formatBigIntToUSDT(BigInt(userStats.levelIncomeEarned)) : "0"} 
               isAmount 
             />
             <IncomeCard 
-              title="Magic Income" 
+              title="Magic Reward" 
               value={userStats?.magicIncome ? formatBigIntToUSDT(BigInt(userStats.magicIncome)) : "0"} 
               isAmount 
             />

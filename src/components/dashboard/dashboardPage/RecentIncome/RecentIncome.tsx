@@ -24,8 +24,8 @@ const INCOME_TYPES = [
     { id: -1, label: 'All' },
     { id: 0, label: 'DirectReferral' },
     { id: 1, label: 'UpgradeReferral' },
-    { id: 2, label: 'LevelIncome' },
-    { id: 3, label: 'MagicIncome' }
+    { id: 2, label: 'LevelReward' },
+    { id: 3, label: 'MagicReward' }
 ] as const;
 
 const RecentIncome = memo(
@@ -64,7 +64,7 @@ const RecentIncome = memo(
                 <div className="rounded-lg drop-shadow-lg shadow bg-gradient">
                     <div className="flex items-center space-x-2 text-lg font-bold px-4 lg:px-6 pt-4 pb-2 lg:pt-6">
                         <LuHistory className="h-5 w-5" />
-                        <span>Recent Income</span>
+                        <span>Recent Reward</span>
                     </div>
                     <div className="flex gap-2 px-4 lg:px-6 overflow-x-auto">
                         {INCOME_TYPES.map(type => (
@@ -102,7 +102,7 @@ const RecentIncome = memo(
                                                 <th className="p-4 text-center">S No.</th>
                                                 <th className="p-4 text-center">Address</th>
                                                 <th className="p-4 text-center">Level Name</th>
-                                                <th className="p-4 text-center">Income Type</th>
+                                                <th className="p-4 text-center">Reward Type</th>
                                                 <th className="p-4 text-center">Amount (USDT)</th>
                                                 <th className="p-4 text-center">Received</th>
                                             </tr>
@@ -158,7 +158,7 @@ const RecentIncome = memo(
                             </>
                         ) : (
                             <div className="text-center py-4 lg:py-8 text-gray-500">
-                                No recent income events
+                                No recent reward events
                             </div>
                         )}
                     </div>

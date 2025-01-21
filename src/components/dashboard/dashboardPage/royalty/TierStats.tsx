@@ -24,9 +24,18 @@ interface StatRowProps {
 
 const TierStats = memo(({ index, royaltyInfo }: TierStatsProps) => {
     const stats = useMemo(() => ({
-        totalEarned: !royaltyInfo?.totalEarned[index]
-            ? '0.00 USDT'
-            : `+${formatRoyaltyAmount(BigInt(royaltyInfo.totalEarned[index]))}`,
+        totalEarned: (() => {
+            if (!royaltyInfo?.totalEarned || !royaltyInfo.paidDays) {
+                return '0.00 USDT';
+            }
+            
+            // Calculate tier-specific earnings based on TIER_AMOUNTS
+            const paidDays = BigInt(royaltyInfo.paidDays[index] || '0');
+            const tierAmount = TIER_AMOUNTS[index];
+            const tierEarnings = tierAmount * paidDays;
+            
+            return `+${formatRoyaltyAmount(tierEarnings)}`;
+        })(),
         poolAmount: (() => {
             const totalDays = BigInt(500);
             const amount = TIER_AMOUNTS[index] * totalDays;
@@ -38,18 +47,14 @@ const TierStats = memo(({ index, royaltyInfo }: TierStatsProps) => {
         daysRemaining: royaltyInfo?.daysRemaining?.[index]
             ? Number(royaltyInfo.daysRemaining[index])
             : '0',
-            nextClaim: (() => {
-                const timestamp = royaltyInfo?.nextClaimTime?.[index];
-                if (!timestamp || timestamp === '0') return 'N/A';
-                
-                const date = new Date(Number(timestamp) * 1000);
-                return Number.isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString();
-            })()
+        nextClaim: (() => {
+            const timestamp = royaltyInfo?.nextClaimTime?.[index];
+            if (!timestamp || timestamp === '0') return 'N/A';
+            
+            const date = new Date(Number(timestamp) * 1000);
+            return Number.isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString();
+        })()
     }), [royaltyInfo, index]);
-
-    // console.log('Raw royalty info from contract:', royaltyInfo?.totalEarned[index]);
-    // console.log('Serialized royalty info:', royaltyInfo?.totalEarned);
-    // console.log(`Tier ${index} total earned:`, royaltyInfo?.totalEarned[index]);
 
     return (
         <div className="space-y-4">

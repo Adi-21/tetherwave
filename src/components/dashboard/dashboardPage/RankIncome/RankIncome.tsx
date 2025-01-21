@@ -53,7 +53,7 @@ const RankIncome = memo(({ userStats, levelIncomes, isLoading }: RankIncomeProps
             <div className="rounded-lg drop-shadow-lg shadow bg-gradient">
                 <div className="flex items-center space-x-2 text-lg font-bold px-4 lg:px-6 pt-4 pb-2 lg:pt-6">
                     <LuLandmark className="h-5 w-5" />
-                    <span>Rank Income</span>
+                    <span>Rank Reward</span>
                 </div>
                 <div className="p-4 lg:px-6 lg:pb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {isLoading ? (
