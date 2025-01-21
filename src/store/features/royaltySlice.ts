@@ -32,10 +32,10 @@ const initialState: RoyaltyState = {
     qualifiedTiers: [],
     royaltyInfo: null,
     legProgress: {
-        tier1: { strongLeg: '0', weakLeg1: '0', weakLeg2: '0', requiredStrong: 3, requiredLevel: 2, total: 6 },
-        tier2: { strongLeg: '0', weakLeg1: '0', weakLeg2: '0', requiredStrong: 4, requiredLevel: 3, total: 8 },
-        tier3: { strongLeg: '0', weakLeg1: '0', weakLeg2: '0', requiredStrong: 5, requiredLevel: 4, total: 10 },
-        tier4: { strongLeg: '0', weakLeg1: '0', weakLeg2: '0', requiredStrong: 6, requiredLevel: 5, total: 12 }
+        tier1: { strongLeg: '0', weakLeg1: '0', weakLeg2: '0', requiredStrong: 125, requiredLevel: 4, total: 250 },
+        tier2: { strongLeg: '0', weakLeg1: '0', weakLeg2: '0', requiredStrong: 375, requiredLevel: 6, total: 750 },
+        tier3: { strongLeg: '0', weakLeg1: '0', weakLeg2: '0', requiredStrong: 750, requiredLevel: 7, total: 1500 },
+        tier4: { strongLeg: '0', weakLeg1: '0', weakLeg2: '0', requiredStrong: 1500, requiredLevel: 8, total: 3000 }
     },
     tierAchieversCount: [0, 0, 0, 0],
     isLoading: false,
@@ -126,10 +126,10 @@ export const fetchRoyaltyData = createAsyncThunk(
             };
 
             const legProgress = {
-                tier1: { ...parseTierData(tier1Data), requiredStrong: 3, requiredLevel: 2, total: 6 },
-                tier2: { ...parseTierData(tier2Data), requiredStrong: 4, requiredLevel: 3, total: 8 },
-                tier3: { ...parseTierData(tier3Data), requiredStrong: 5, requiredLevel: 4, total: 10 },
-                tier4: { ...parseTierData(tier4Data), requiredStrong: 6, requiredLevel: 5, total: 12 }
+                tier1: { ...parseTierData(tier1Data), requiredStrong: 125, requiredLevel: 4, total: 250 },
+                tier2: { ...parseTierData(tier2Data), requiredStrong: 375, requiredLevel: 6, total: 750 },
+                tier3: { ...parseTierData(tier3Data), requiredStrong: 750, requiredLevel: 7, total: 1500 },
+                tier4: { ...parseTierData(tier4Data), requiredStrong: 1500, requiredLevel: 8, total: 3000 }
             };
 
             return {

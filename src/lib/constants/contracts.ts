@@ -30,6 +30,30 @@ export const opBNBTestnet: Chain = {
     testnet: true
 };
 
+export const opBNB: Chain = {
+    id: 204,
+    name: 'opBNB Mainnet',
+    nativeCurrency: {
+        decimals: 18,
+        name: 'BNB',
+        symbol: 'BNB',
+    },
+    rpcUrls: {
+        default: {
+            http: ['https://opbnb-mainnet-rpc.bnbchain.org']
+        },
+        public: {
+            http: ['https://opbnb-mainnet-rpc.bnbchain.org']
+        }
+    },
+    blockExplorers: {
+        default: {
+            name: 'opBNBScan',
+            url: 'http://opbnbscan.com/'
+        }
+    }
+}
+
 export const publicClient = createPublicClient({
     chain: opBNBTestnet,
     transport: http()
