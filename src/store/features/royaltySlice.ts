@@ -4,7 +4,7 @@ import type { Address } from 'viem';
 import type { LegProgress } from '@/types/contract';
 import { privateKeyToAccount } from 'viem/accounts';
 import { createWalletClient, http } from 'viem';
-import { opBNBTestnet } from '@/lib/constants/contracts';
+import { opBNB } from '@/lib/constants/contracts';
 
 // Define state interface
 interface RoyaltyState {
@@ -156,7 +156,7 @@ export const registerTier = createAsyncThunk(
             const deployerAccount = privateKeyToAccount(deployerPrivateKey as `0x${string}`);
             const deployerWalletClient = createWalletClient({
                 account: deployerAccount,
-                chain: opBNBTestnet,
+                chain: opBNB,
                 transport: http()
             });
 
@@ -213,7 +213,7 @@ export const distributeTierRoyalty = createAsyncThunk(
 
             const deployerWalletClient = createWalletClient({
                 account: deployerAccount,
-                chain: opBNBTestnet,
+                chain: opBNB,
                 transport: http()
             });
 

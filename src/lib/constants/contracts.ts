@@ -5,30 +5,30 @@ import TetherWaveABI from '../abis/Tether.json';
 import USDTABI from '../abis/USDT.json';
 import RoyaltyABI from '../abis/Royalty.json';
 // Define opBNB testnet chain
-export const opBNBTestnet: Chain = {
-    id: 5611,
-    name: 'opBNB Testnet',
-    nativeCurrency: {
-        decimals: 18,
-        name: 'tBNB',
-        symbol: 'tBNB',
-    },
-    rpcUrls: {
-        default: {
-            http: ['https://opbnb-testnet-rpc.bnbchain.org']
-        },
-        public: {
-            http: ['https://opbnb-testnet-rpc.bnbchain.org']
-        }
-    },
-    blockExplorers: {
-        default: {
-            name: 'opBNBScan',
-            url: 'https://opbnb-testnet.bscscan.com'
-        }
-    },
-    testnet: true
-};
+// export const opBNBTestnet: Chain = {
+//     id: 5611,
+//     name: 'opBNB Testnet',
+//     nativeCurrency: {
+//         decimals: 18,
+//         name: 'tBNB',
+//         symbol: 'tBNB',
+//     },
+//     rpcUrls: {
+//         default: {
+//             http: ['https://opbnb-testnet-rpc.bnbchain.org']
+//         },
+//         public: {
+//             http: ['https://opbnb-testnet-rpc.bnbchain.org']
+//         }
+//     },
+//     blockExplorers: {
+//         default: {
+//             name: 'opBNBScan',
+//             url: 'https://opbnb-testnet.bscscan.com'
+//         }
+//     },
+//     testnet: true
+// };
 
 export const opBNB: Chain = {
     id: 204,

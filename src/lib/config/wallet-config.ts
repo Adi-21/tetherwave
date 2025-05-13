@@ -3,14 +3,14 @@
 import '@rainbow-me/rainbowkit/styles.css';
 import { connectorsForWallets } from '@rainbow-me/rainbowkit';
 import { createConfig, http } from 'wagmi';
-import { opBNBTestnet, opBNB } from 'wagmi/chains';
+import { opBNB } from 'wagmi/chains';
 import {
     metaMaskWallet,
     walletConnectWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 
 const transport = http();
-const chains = [opBNBTestnet];
+const chains = [opBNB];
 const projectId = '733d24cd8005c14baf78ac6defd5c2f9';
 
 const connectors = connectorsForWallets([{
@@ -22,10 +22,10 @@ const connectors = connectorsForWallets([{
 }], { projectId, appName: 'tetherwave' });
 
 export const wagmiConfig = createConfig({
-    chains: [opBNBTestnet, opBNB],
+    chains: [ opBNB],
     connectors,
     transports: {
-        [opBNBTestnet.id]: transport,
+        // [opBNBTestnet.id]: transport,
         [opBNB.id]: transport
     }
 });

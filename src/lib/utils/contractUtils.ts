@@ -1,5 +1,5 @@
 import { privateKeyToAccount } from 'viem/accounts';
-import { getContracts, opBNBTestnet } from '../constants/contracts';
+import { getContracts, opBNB } from '../constants/contracts';
 import { publicClient } from '../constants/contracts';
 import type { ReferralData, Sponsor, RecentIncomeEvents, DownlineData, RoyaltyInfo, LevelInfo, DownlineByDepthPaginated, DirectReferralDataPaginated, LevelActivatedCount, UserRoyaltyInfo, UserCompleteStats } from '@/types/contract';
 import { createWalletClient, http, type Address } from 'viem';
@@ -362,7 +362,7 @@ export const contractUtils = {
             const deployerAccount = privateKeyToAccount(deployerPrivateKey as `0x${string}`);
             const deployerWalletClient = createWalletClient({
                 account: deployerAccount,
-                chain: opBNBTestnet,
+                chain: opBNB,
                 transport: http()
             });
 
@@ -456,7 +456,7 @@ export const contractUtils = {
 
             const deployerWalletClient = createWalletClient({
                 account: deployerAccount,
-                chain: opBNBTestnet,
+                chain: opBNB,
                 transport: http()
             });
 

@@ -6,7 +6,7 @@ import type { ReferralData, Sponsor, LevelActivatedCount, UserCompleteStats } fr
 import type { Address } from 'viem'
 import { createWalletClient } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { opBNBTestnet } from '../lib/constants/contracts'
+import { opBNB } from '../lib/constants/contracts'
 import { http } from 'viem'
 
 const REGISTRATION_COST = BigInt(11 * 10 ** 18); 
@@ -257,7 +257,7 @@ export function useContract() {
             const deployerAccount = privateKeyToAccount(deployerPrivateKey as `0x${string}`);
             const deployerWalletClient = createWalletClient({
                 account: deployerAccount,
-                chain: opBNBTestnet,
+                chain: opBNB,
                 transport: http()
             });
 
@@ -351,7 +351,7 @@ export function useContract() {
 
             const deployerWalletClient = createWalletClient({
                 account: deployerAccount,
-                chain: opBNBTestnet,
+                chain: opBNB,
                 transport: http()
             });
 
